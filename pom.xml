@@ -8,7 +8,28 @@
     <packaging>war</packaging>
 
     <name>maven_webmail</name>
-
+    <developers>
+        <developer>
+            <name>박승득</name>
+            <email>tmdemr5@naver.com</email>
+        </developer>
+        <developer>
+            <name>이병길</name>
+            <email>donny1848@gmail.com</email>
+        </developer>
+        <developer>
+            <name>이민준</name>
+            <email></email>
+        </developer>
+        <developer>
+            <name>박지율</name>
+            <email>qkrskdjf@naver.com</email>
+        </developer>
+        <developer>
+            <name>남영우</name>
+            <email>playxpere@gmail.com</email>
+        </developer>
+    </developers>
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -36,8 +57,6 @@
             <version>1.6.2</version>
             <scope>compile</scope>
         </dependency>
-
-
     </dependencies>
 
     <build>
@@ -86,6 +105,16 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.5</version>
+                <configuration>
+                    <excludes>
+                        <exclude>jsp/**/*.class</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

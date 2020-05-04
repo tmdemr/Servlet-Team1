@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * @author jongmin
  */
-public class UserAdminAgent implements AutoCloseable {
+public class UserAdminAgent {
 
 
     boolean isConnected = false;
@@ -185,7 +185,7 @@ public class UserAdminAgent implements AutoCloseable {
         mBeanServerConnection = jmxConnector.getMBeanServerConnection();
     }
 
-    @Override
+    
     public void close() throws IOException {
         jmxConnector.close();
     }
