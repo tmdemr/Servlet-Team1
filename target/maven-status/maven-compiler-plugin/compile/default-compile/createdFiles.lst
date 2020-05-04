@@ -1,0 +1,11 @@
+cse\maven_webmail\model\MessageFormatter.class
+cse\maven_webmail\control\ReadMailHandler.class
+cse\maven_webmail\control\WriteMailHandler.class
+cse\maven_webmail\model\FormParser.class
+cse\maven_webmail\control\CommandType.class
+cse\maven_webmail\control\LoginHandler.class
+cse\maven_webmail\control\UserAdminHandler.class
+cse\maven_webmail\model\MessageParser.class
+cse\maven_webmail\model\SmtpAgent.class
+cse\maven_webmail\model\Pop3Agent.class
+cse\maven_webmail\model\UserAdminAgent.class
