@@ -112,7 +112,8 @@ public class SmtpAgent {
         try {
             SMTPMessage msg = new SMTPMessage(session);
 
-            msg.setFrom(new InternetAddress(this.userid + "@" + this.host));
+            // msg.setFrom(new InternetAddress(this.userid + "@" + this.host));
+            msg.setFrom(new InternetAddress(this.userid));  // 200102 LJM - 테스트 목적으로 수정
             //msg.setFrom(new InternetAddress("jongmin@deu.ac.kr"));
 
 
@@ -120,7 +121,7 @@ public class SmtpAgent {
             if (this.to.indexOf(';') != -1) {
                 this.to = this.to.replaceAll(";", ",");
             }
-            msg.setRecipients(Message.RecipientType.TO, this.to);
+            msg.setRecipients(Message.RecipientType.TO, this.to);  // 200102 LJM - 수정
 //            msg.setRecipients(Message.RecipientType.TO, new String("지니<genie@localhost>"));
 
 //            if (!getCc().equals("")) {

@@ -6,7 +6,28 @@
     <artifactId>maven_webmail</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
-
+    <developers>
+        <developer>
+            <name>박승득</name>
+            <email>tmdemr5@naver.com</email>
+        </developer>
+        <developer>
+            <name>이병길</name>
+            <email>donny1848@gmail.com</email>
+        </developer>
+        <developer>
+            <name>이민준</name>
+            <email></email>
+        </developer>
+        <developer>
+            <name>박지율</name>
+            <email>qkrskdjf@naver.com</email>
+        </developer>
+        <developer>
+            <name>남영우</name>
+            <email>playxpere@gmail.com</email>
+        </developer>
+    </developers>
     <name>maven_webmail</name>
 
     <properties>
