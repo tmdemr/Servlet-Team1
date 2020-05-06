@@ -47,9 +47,10 @@ public class LoginHandler extends HttpServlet {
                     String password = request.getParameter("passwd");
 
                     // Check the login information is valid using <<model>>Pop3Agent.
-                    Pop3Agent pop3Agent = new Pop3Agent(host, userid+"@"+host, password);
+                    Pop3Agent pop3Agent = new Pop3Agent(host, userid, password);
                     boolean isLoginSuccess = pop3Agent.validate();
 //                    boolean isLoginSuccess = false;
+
                     // Now call the correct page according to its validation result.
                     if (isLoginSuccess) {
                         if (isAdmin(userid)) {
@@ -63,7 +64,6 @@ public class LoginHandler extends HttpServlet {
                             response.sendRedirect("main_menu.jsp");
                         }
                     } else {
-                        //response.getWriter().println(pop3Agent.getExceptionType());
                         RequestDispatcher view = request.getRequestDispatcher("login_fail.jsp");
                         view.forward(request, response);
 //                        response.sendRedirect("login_fail.jsp");

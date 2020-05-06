@@ -4,62 +4,60 @@
  */
 package cse.maven_webmail.model;
 
-import javax.management.*;
-import javax.management.remote.JMXConnector;
-import javax.management.remote.JMXConnectorFactory;
-import javax.management.remote.JMXServiceURL;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 /**
+ *
  * @author jongmin
  */
 public class UserAdminAgent {
 
-
+    private String server;
+    private int port;
+    Socket socket = null;
+    InputStream is = null;
+    OutputStream os = null;
     boolean isConnected = false;
+    private String ROOT_ID;  //  = "root";
+    private String ROOT_PASSWORD;  // = "root";
     private String ADMIN_ID; //  = "admin";
     private final String EOL = "\r\n";
-    private  String JMX_RMI_URL_STRING;
-    private String USER_BEAN_STRING;
-    private ObjectName userBeanName;
-    private MBeanServerConnection mBeanServerConnection;
-    private JMXConnector jmxConnector;
 
-    private String cwd;
-
-
-    public UserAdminAgent(String cwd) throws Exception {
-        this.cwd = cwd;
+    public UserAdminAgent(String server, int port) throws Exception {
+        System.out.println("UserAdminAgent created: server = " + server + ", port = " + port);
+        this.server = server;  // 127.0.0.1
+        this.port = port;  // 4555
+        
         initialize();
-        userBeanName = new ObjectName(USER_BEAN_STRING);
-        JMXServiceURL jmxServiceURL = new JMXServiceURL(JMX_RMI_URL_STRING);
-        jmxConnector = JMXConnectorFactory.connect(jmxServiceURL, null);
-        mBeanServerConnection = jmxConnector.getMBeanServerConnection();
-        //isConnected = connect();
-    }
 
+        socket = new Socket(server, port);
+        is = socket.getInputStream();
+        os = socket.getOutputStream();
+
+        isConnected = connect();
+    }
+    
     private void initialize() {
         Properties props = new Properties();
-
-        String propertyFile = cwd + "/WEB-INF/classes/conf/system.properties";
-        propertyFile = propertyFile.replace("\\", "/");
-        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(propertyFile))) {
+        
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream("system.properties"))) {
             props.load(bis);
-            USER_BEAN_STRING = props.getProperty("user_bean");
-            JMX_RMI_URL_STRING = props.getProperty("jmx_rmi_url");
+            ROOT_ID = props.getProperty("root_id");
+            ROOT_PASSWORD = props.getProperty("root_password");
             ADMIN_ID = props.getProperty("admin_id");
         } catch (IOException ioe) {
             System.out.println("UserAdminAgent: 초기화 실패 - " + ioe.getMessage());
         }
+        
     }
-
 
     // return value:
     //   - true: addUser operation successful
@@ -76,12 +74,12 @@ public class UserAdminAgent {
         try {
             // 1: "adduser" command
             String addUserCommand = "adduser " + userId + " " + password + EOL;
-            //os.write(addUserCommand.getBytes());
+            os.write(addUserCommand.getBytes());
 
             // 2: response for "adduser" command
             java.util.Arrays.fill(messageBuffer, (byte) 0);
             //if (is.available() > 0) {
-            //is.read(messageBuffer);
+            is.read(messageBuffer);
             String recvMessage = new String(messageBuffer);
             System.out.println(recvMessage);
             //}
@@ -92,9 +90,9 @@ public class UserAdminAgent {
                 status = false;
             }
             // 4: 연결 종료
-            // quit();
+            quit();
             System.out.flush();  // for test
-            //socket.close();
+            socket.close();
         } catch (Exception ex) {
             System.out.println(ex.toString());
             status = false;
@@ -105,14 +103,33 @@ public class UserAdminAgent {
     }  // addUser()
 
     public List<String> getUserList() {
-        String[] users = new String[0];
-        try {
-            mBeanServerConnection.invoke(userBeanName, "listAllUsers", null, null);
-            users = (String[]) mBeanServerConnection.invoke(userBeanName, "listAllUsers", null, null);
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
+        List<String> userList = new LinkedList<String>();
+        byte[] messageBuffer = new byte[1024];
+
+        if (!isConnected) {
+            return userList;
         }
-        return Arrays.stream(users).collect(Collectors.toList());
+
+        try {
+            // 1: "listusers" 명령 송신
+            String command = "listusers " + EOL;
+            os.write(command.getBytes());
+
+            // 2: "listusers" 명령에 대한 응답 수신
+            java.util.Arrays.fill(messageBuffer, (byte) 0);
+            is.read(messageBuffer);
+
+            // 3: 응답 메시지 처리
+            String recvMessage = new String(messageBuffer);
+            System.out.println(recvMessage);
+            userList = parseUserList(recvMessage);
+
+            quit();
+        } catch (Exception ex) {
+            System.err.println(ex);
+        } finally {
+            return userList;
+        }
     }  // getUserList()
 
     private List<String> parseUserList(String message) {
@@ -152,12 +169,12 @@ public class UserAdminAgent {
             for (String userId : userList) {
                 // 1: "deluser" 명령 송신
                 command = "deluser " + userId + EOL;
-                // os.write(command.getBytes());
+                os.write(command.getBytes());
                 System.out.println(command);
 
                 // 2: 응답 메시지 수신
                 java.util.Arrays.fill(messageBuffer, (byte) 0);
-                // is.read(messageBuffer);
+                is.read(messageBuffer);
 
                 // 3: 응답 메시지 분석
                 recvMessage = new String(messageBuffer);
@@ -166,7 +183,7 @@ public class UserAdminAgent {
                     status = true;
                 }
             }
-            // quit();
+            quit();
         } catch (Exception ex) {
             System.err.println(ex);
         } finally {
@@ -174,19 +191,97 @@ public class UserAdminAgent {
         }
     }  // deleteUsers()
 
-    public boolean verify(String userId) throws ReflectionException, MBeanException, InstanceNotFoundException, IOException {
-        boolean status = (boolean) mBeanServerConnection.invoke(userBeanName, "verifyExists", new Object[]{userId}, null);
-        return status;
+    public boolean verify(String userid) {
+        boolean status = false;
+        byte[] messageBuffer = new byte[1024];
+
+        try {
+            // --> verify userid
+            String verifyCommand = "verify " + userid;
+            os.write(verifyCommand.getBytes());
+
+            // read the result for verify command
+            // <-- User userid exists   or
+            // <-- User userid does not exist
+            is.read(messageBuffer);
+            String recvMessage = new String(messageBuffer);
+            if (recvMessage.contains("exists")) {
+                status = true;
+            }
+
+            quit();  // quit command
+        } catch (IOException ex) {
+        } finally {
+            return status;
+        }
     }
 
-    private void connect() throws IOException {
-        JMXServiceURL jmxServiceURL = new JMXServiceURL(JMX_RMI_URL_STRING);
-        jmxConnector = JMXConnectorFactory.connect(jmxServiceURL, null);
-        mBeanServerConnection = jmxConnector.getMBeanServerConnection();
-    }
+    private boolean connect() throws Exception {
+        byte[] messageBuffer = new byte[1024];
+        boolean returnVal = false;
+        String sendMessage;
 
-    
-    public void close() throws IOException {
-        jmxConnector.close();
+        System.out.println("UserAdminAgent.connect() called...");
+
+        // root 인증: id, passwd - default: root
+        // 1: Login Id message 수신
+        is.read(messageBuffer);
+        String recvMessage = new String(messageBuffer);
+        System.out.println(recvMessage);
+
+        // 2: rootId 송신
+        sendMessage = ROOT_ID + EOL;
+        os.write(sendMessage.getBytes());
+
+        // 3: Password message 수신
+        java.util.Arrays.fill(messageBuffer, (byte) 0);
+        is.read(messageBuffer);
+        recvMessage = new String(messageBuffer);
+        System.out.println(recvMessage);
+
+        // 4: rootPassword 송신
+        sendMessage = ROOT_PASSWORD + EOL;
+        os.write(sendMessage.getBytes());
+
+        // 5: welcome message 수신
+        java.util.Arrays.fill(messageBuffer, (byte) 0);
+        // if (is.available() > 0) {
+        is.read(messageBuffer);
+        recvMessage = new String(messageBuffer);
+        System.out.println(recvMessage);
+
+        if (recvMessage.contains("Welcome")) {
+            returnVal = true;
+        } else {
+            returnVal = false;
+        }
+        return returnVal;
+    }  // connect()
+
+    public boolean quit() {
+        byte[] messageBuffer = new byte[1024];
+        boolean status = false;
+        // quit
+        try {
+            // 1: quit 명령 송신
+            String quitCommand = "quit" + EOL;
+            os.write(quitCommand.getBytes());
+            // 2: quit 명령에 대한 응답 수신
+            java.util.Arrays.fill(messageBuffer, (byte) 0);
+            //if (is.available() > 0) {
+            is.read(messageBuffer);
+            // 3: 메시지 분석
+            String recvMessage = new String(messageBuffer);
+            System.out.println(recvMessage);
+            if (recvMessage.contains("closed")) {
+                status = true;
+            } else {
+                status = false;
+            }
+        } catch (IOException ex) {
+            System.err.println("UserAdminAgent.quit() " + ex);
+        } finally {
+            return status;
+        }
     }
 }

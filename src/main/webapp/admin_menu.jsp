@@ -25,14 +25,13 @@
             <h2> 메일 사용자 목록 </h2>
             <!-- 아래 코드는 위와 같이 Java Beans와 JSTL을 이용하는 코드로 바꾸어져야 함 -->
             <%
-                String cwd = this.getServletContext().getRealPath(".");
-                UserAdminAgent agent = new UserAdminAgent(cwd);
+                        UserAdminAgent agent = new UserAdminAgent("localhost", 4555);
             %>
             <ul>
                 <%
-                    for (String userId : agent.getUserList()) {
-                        out.println("<li>" + userId + "</li>");
-                    }
+                            for (String userId : agent.getUserList()) {
+                                out.println("<li>" + userId + "</li>");
+                            }
                 %>
             </ul>
         </div>

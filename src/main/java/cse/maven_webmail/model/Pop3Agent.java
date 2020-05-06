@@ -147,11 +147,9 @@ public class Pop3Agent {
     private boolean connectToStore() {
         boolean status = false;
         Properties props = System.getProperties();
-        props.setProperty("mail.smtp.host", host);
-        props.setProperty("mail.smtp.user", userid);
-        props.setProperty("mail.smtp.port", "25");
-        props.setProperty("mail.smtp.password", password);
-        props.setProperty("mail.smtp.apop.enable", "true");
+        props.setProperty("mail.pop3.host", host);
+        props.setProperty("mail.pop3.user", userid);
+        props.setProperty("mail.pop3.apop.enable", "true");
         props.setProperty("mail.debug", "true");
 
         Session session = Session.getInstance(props);
@@ -190,10 +188,6 @@ public class Pop3Agent {
 
     public void setUserid(String userid) {
         this.userid = userid;
-    }
-
-    public String getExceptionType() {
-        return exceptionType;
     }
 }  // class Pop3Agent
 
