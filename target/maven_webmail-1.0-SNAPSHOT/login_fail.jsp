@@ -3,42 +3,40 @@
     Author     : jongmin
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-
-<!DOCTYPE html>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <script type="text/javascript">
     <!--
-    function gohome(){
+    function gohome() {
         window.location = "/maven_webmail/"
     }
+
     -->
 </script>
+<!DOCTYPE>
+<html lang="kr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>로그인 실패</title>
+    <link type="text/css" rel="stylesheet" href="css/main_style.css"/>
+</head>
+<body onload="setTimeout('gohome()', 5000)">
 
+<jsp:include page="header.jsp"/>
 
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>로그인 실패</title>
-        <link type="text/css" rel="stylesheet" href="css/main_style.css" />
-    </head>
-    <body onload="setTimeout('gohome()', 5000)">
+<p id="login_fail">
+    <%= request.getParameter("userid")%>님, 로그인이 실패하였습니다.
 
-        <jsp:include page="header.jsp" />
+    올바른 사용자 ID와 암호를 사용하여 로그인하시기 바랍니다.
 
-        <p id="login_fail">
-            <%= request.getParameter("userid")%>님, 로그인이 실패하였습니다.
+    5초 뒤 자동으로 초기 화면으로 돌아갑니다.
 
-            올바른 사용자 ID와 암호를 사용하여 로그인하시기 바랍니다.
+    자동으로 화면 전환이 일어나지 않을 경우
+    <!-- <a href="/WebMailSystem/" title="초기 화면">초기 화면</a>을 선택해 주세요.-->
+    <a href="<%= getServletContext().getInitParameter("HomeDirectory") %>" title="초기 화면">초기 화면</a>을 선택해 주세요.
+</p>
 
-            5초 뒤 자동으로 초기 화면으로 돌아갑니다.
+<jsp:include page="footer.jsp"/>
 
-            자동으로 화면 전환이 일어나지 않을 경우
-            <!-- <a href="/WebMailSystem/" title="초기 화면">초기 화면</a>을 선택해 주세요.-->
-            <a href="<%= getServletContext().getInitParameter("HomeDirectory") %>" title="초기 화면">초기 화면</a>을 선택해 주세요.
-        </p>
-
-        <jsp:include page="footer.jsp" />
-
-    </body>
+</body>
 </html>

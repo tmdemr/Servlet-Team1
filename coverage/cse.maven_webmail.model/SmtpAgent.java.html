@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SmtpAgent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Servlet_Team1$index_jsp__1_.exec</a> &gt; <a href="index.source.html" class="el_package">cse.maven_webmail.model</a> &gt; <span class="el_source">SmtpAgent.java</span></div><h1>SmtpAgent.java</h1><pre class="source lang-java linenums">/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cse.maven_webmail.model;
+
+import com.sun.mail.smtp.SMTPMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.Message;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
+
+/**
+ * @author jongmin
+ */
+public class SmtpAgent {
+<span class="nc" id="L30">    private static final Logger logger = LoggerFactory.getLogger(SmtpAgent.class);</span>
+    protected String host;
+    protected String userid;
+<span class="nc" id="L33">    protected String to = null;</span>
+<span class="nc" id="L34">    protected String cc = null;</span>
+<span class="nc" id="L35">    protected String subj = null;</span>
+<span class="nc" id="L36">    protected String body = null;</span>
+<span class="nc" id="L37">    protected String file1 = null;</span>
+
+<span class="nc" id="L39">    public SmtpAgent(String host, String userid) {</span>
+<span class="nc" id="L40">        this.host = host;</span>
+<span class="nc" id="L41">        this.userid = userid;</span>
+<span class="nc" id="L42">    }</span>
+
+    public String getHost() {
+<span class="nc" id="L45">        return host;</span>
+    }
+
+    public void setHost(String host) {
+<span class="nc" id="L49">        this.host = host;</span>
+<span class="nc" id="L50">    }</span>
+
+    public String getUserid() {
+<span class="nc" id="L53">        return userid;</span>
+    }
+
+    public void setUserid(String userid) {
+<span class="nc" id="L57">        this.userid = userid;</span>
+<span class="nc" id="L58">    }</span>
+
+    public String getTo() {
+<span class="nc" id="L61">        return to;</span>
+    }
+
+    public void setTo(String to) {
+<span class="nc" id="L65">        this.to = to;</span>
+<span class="nc" id="L66">    }</span>
+
+    public String getCc() {
+<span class="nc" id="L69">        return cc;</span>
+    }
+
+    public void setCc(String cc) {
+<span class="nc" id="L73">        this.cc = cc;</span>
+<span class="nc" id="L74">    }</span>
+
+    public String getSubj() {
+<span class="nc" id="L77">        return subj;</span>
+    }
+
+    public void setSubj(String subj) {
+<span class="nc" id="L81">        this.subj = subj;</span>
+<span class="nc" id="L82">    }</span>
+
+    public String getBody() {
+<span class="nc" id="L85">        return body;</span>
+    }
+
+    public void setBody(String body) {
+<span class="nc" id="L89">        this.body = body;</span>
+<span class="nc" id="L90">    }</span>
+
+    public String getFile1() {
+<span class="nc" id="L93">        return file1;</span>
+    }
+
+    public void setFile1(String file1) {
+<span class="nc" id="L97">        this.file1 = file1;</span>
+<span class="nc" id="L98">    }</span>
+
+    // LJM 100418 -  현재 로그인한 사용자의 이메일 주소를 반영하도록 수정되어야 함. - test only
+    // LJM 100419 - 일반 웹 서버와의 SMTP 동작시 setFrom() 함수 사용 필요함.
+    //              없을 경우 메일 전송이 송신주소가 없어서 걸러짐.
+    public boolean sendMessage() {
+<span class="nc" id="L104">        boolean status = false;</span>
+
+        // 1. property 설정
+<span class="nc" id="L107">        Properties props = System.getProperties();</span>
+<span class="nc" id="L108">        props.put(&quot;mail.smtp.host&quot;, this.host);</span>
+<span class="nc" id="L109">        logger.trace(&quot;SMTP host : {}&quot;, props.get(&quot;mail.smtp.host&quot;));</span>
+
+
+        // 2. session 가져오기
+<span class="nc" id="L113">        Session session = Session.getDefaultInstance(props, null);</span>
+<span class="nc" id="L114">        session.setDebug(false);</span>
+
+        try {
+<span class="nc" id="L117">            SMTPMessage msg = new SMTPMessage(session);</span>
+
+            // msg.setFrom(new InternetAddress(this.userid + &quot;@&quot; + this.host));
+<span class="nc" id="L120">            msg.setFrom(new InternetAddress(this.userid));  // 200102 LJM - 테스트 목적으로 수정</span>
+            //msg.setFrom(new InternetAddress(&quot;jongmin@deu.ac.kr&quot;));
+
+
+            // setRecipient() can be called repeatedly if ';' or ',' exists
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (this.to.indexOf(';') != -1) {</span>
+<span class="nc" id="L126">                this.to = this.to.replaceAll(&quot;;&quot;, &quot;,&quot;);</span>
+            }
+<span class="nc" id="L128">            msg.setRecipients(Message.RecipientType.TO, this.to);  // 200102 LJM - 수정</span>
+//            msg.setRecipients(Message.RecipientType.TO, new String(&quot;지니&lt;genie@localhost&gt;&quot;));
+
+//            if (!getCc().equals(&quot;&quot;)) {
+//                msg.setRecipients(Message.RecipientType.CC, this.cc);
+//            }
+
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            if (this.cc.length() &gt; 1) {</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                if (this.cc.indexOf(';') != -1) {</span>
+<span class="nc" id="L137">                    this.cc = this.cc.replaceAll(&quot;;&quot;, &quot;,&quot;);</span>
+                }
+<span class="nc" id="L139">                msg.setRecipients(Message.RecipientType.CC, this.cc);</span>
+            }
+
+            //msg.setSubject(s);
+//            msg.setSubject(MimeUtility.encodeText(this.subj, &quot;euc-kr&quot;, &quot;B&quot;));
+<span class="nc" id="L144">            msg.setSubject(this.subj);</span>
+
+            //msg.setHeader(&quot;Content-Type&quot;, &quot;text/plain; charset=utf-8&quot;);
+<span class="nc" id="L147">            msg.setHeader(&quot;User-Agent&quot;, &quot;LJM-WM/0.1&quot;);</span>
+            //msg.setHeader(&quot;Content-Transfer-Encoding&quot;, &quot;8bit&quot;);
+            //msg.setAllow8bitMIME(true);
+
+            // body
+<span class="nc" id="L152">            MimeBodyPart mbp = new MimeBodyPart();</span>
+            // Content-Type, Content-Transfer-Encoding 설정 의미 없음.
+            // 자동으로 설정되는 것 같음. - LJM 041202
+            //mbp.setHeader(&quot;Content-Type&quot;, &quot;text/plain; charset=euc-kr&quot;);
+            //mbp.setHeader(&quot;Content-Transfer-Encoding&quot;, &quot;8bit&quot;);
+<span class="nc" id="L157">            mbp.setText(this.body);</span>
+
+<span class="nc" id="L159">            Multipart mp = new MimeMultipart();</span>
+<span class="nc" id="L160">            mp.addBodyPart(mbp);</span>
+
+            // 첨부 파일 추가
+<span class="nc bnc" id="L163" title="All 2 branches missed.">            if (this.file1 != null) {</span>
+<span class="nc" id="L164">                MimeBodyPart a1 = new MimeBodyPart();</span>
+<span class="nc" id="L165">                DataSource src = new FileDataSource(this.file1);</span>
+<span class="nc" id="L166">                a1.setDataHandler(new DataHandler(src));</span>
+<span class="nc" id="L167">                int index = this.file1.lastIndexOf('/');</span>
+<span class="nc" id="L168">                String fileName = this.file1.substring(index + 1);</span>
+<span class="nc" id="L169">                fileName = fileName.replace(&quot;\\&quot;, &quot;/&quot;);</span>
+                // &quot;B&quot;: base64, &quot;Q&quot;: quoted-printable
+<span class="nc" id="L171">                a1.setFileName(MimeUtility.encodeText(fileName, StandardCharsets.UTF_8.name(), &quot;B&quot;));</span>
+<span class="nc" id="L172">                mp.addBodyPart(a1);</span>
+            }
+<span class="nc" id="L174">            msg.setContent(mp);</span>
+
+            // 메일 전송
+<span class="nc" id="L177">            Transport.send(msg);</span>
+
+            // 메일 전송 완료되었으므로 서버에 저장된
+            // 첨부 파일 삭제함
+<span class="nc bnc" id="L181" title="All 2 branches missed.">            if (this.file1 != null) {</span>
+<span class="nc" id="L182">                File f = new File(this.file1);</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                if (!f.delete()) {</span>
+<span class="nc" id="L184">                    logger.error(&quot;{} 파일 삭제가 제대로 안 됨&quot;, this.file1);</span>
+                }
+            }
+<span class="nc" id="L187">            status = true;</span>
+<span class="nc" id="L188">        } catch (Exception ex) {</span>
+<span class="nc" id="L189">            logger.error(&quot;sendMessage() error : {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L190">        }</span>
+<span class="nc" id="L191">        return status;</span>
+    }  // sendMessage()
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

@@ -6,36 +6,40 @@ package cse.maven_webmail.control;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import cse.maven_webmail.model.FormParser;
 import cse.maven_webmail.model.SmtpAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author jongmin
  */
 public class WriteMailHandler extends HttpServlet {
+    private static final Logger logger = LoggerFactory.getLogger(WriteMailHandler.class);
 
-    /** 
+    /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-//        PrintWriter out = response.getWriter();
-        PrintWriter out = null;
 
-        try {
-            request.setCharacterEncoding("UTF-8");
-            int select = Integer.parseInt((String) request.getParameter("menu"));
+
+        try (PrintWriter out = response.getWriter()) {
+            request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            int select = Integer.parseInt(request.getParameter("menu"));
 
             switch (select) {
 //                case CommandType.WRITE_MENU:  // 메일 쓰기 화면
@@ -45,21 +49,15 @@ public class WriteMailHandler extends HttpServlet {
 
 
                 case CommandType.SEND_MAIL_COMMAND: // 실제 메일 전송하기
-                    out = response.getWriter();
                     boolean status = sendMessage(request);
                     out.print(getMailTransportPopUp(status));
 //                    out.flush();
                     break;
 
                 default:
-                    out = response.getWriter();
                     out.println("없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?");
                     break;
             }
-        } catch (Exception ex) {
-            out.println(ex.toString());
-        } finally {
-            out.close();
         }
     }
 
@@ -71,7 +69,7 @@ public class WriteMailHandler extends HttpServlet {
         parser.parse();
 
         // 2.  request 객체에서 HttpSession 객체 얻기
-        HttpSession session = (HttpSession) request.getSession();
+        HttpSession session = request.getSession();
 
         // 3. HttpSession 객체에서 메일 서버, 메일 사용자 ID 정보 얻기
         String host = (String) session.getAttribute("host");
@@ -84,7 +82,7 @@ public class WriteMailHandler extends HttpServlet {
         agent.setSubj(parser.getSubject());
         agent.setBody(parser.getBody());
         String fileName = parser.getFileName();
-        System.out.println("WriteMailHandler.sendMessage() : fileName = " + fileName);
+        logger.trace("WriteMailHandler.sendMessage() : fileName = {}", fileName);
         if (fileName != null) {
             agent.setFile1(fileName);
         }
@@ -97,7 +95,7 @@ public class WriteMailHandler extends HttpServlet {
     }  // sendMessage()
 
     private String getMailTransportPopUp(boolean success) {
-        String alertMessage = null;
+        String alertMessage;
         if (success) {
             alertMessage = "메일 전송이 성공했습니다.";
         } else {
@@ -124,12 +122,14 @@ public class WriteMailHandler extends HttpServlet {
     }
 
 // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+
     /**
      * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -139,12 +139,13 @@ public class WriteMailHandler extends HttpServlet {
 
     }
 
-    /** 
+    /**
      * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -154,8 +155,9 @@ public class WriteMailHandler extends HttpServlet {
 
     }
 
-    /** 
+    /**
      * Returns a short description of the servlet.
+     *
      * @return a String containing servlet description
      */
     @Override

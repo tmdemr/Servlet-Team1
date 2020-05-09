@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WriteMailHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Servlet_Team1$index_jsp__1_.exec</a> &gt; <a href="index.source.html" class="el_package">cse.maven_webmail.control</a> &gt; <span class="el_source">WriteMailHandler.java</span></div><h1>WriteMailHandler.java</h1><pre class="source lang-java linenums">/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cse.maven_webmail.control;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import cse.maven_webmail.model.FormParser;
+import cse.maven_webmail.model.SmtpAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author jongmin
+ */
+<span class="nc" id="L24">public class WriteMailHandler extends HttpServlet {</span>
+<span class="nc" id="L25">    private static final Logger logger = LoggerFactory.getLogger(WriteMailHandler.class);</span>
+
+    /**
+     * Processes requests for both HTTP &lt;code&gt;GET&lt;/code&gt; and &lt;code&gt;POST&lt;/code&gt; methods.
+     *
+     * @param request  servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException      if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+<span class="nc" id="L37">        response.setContentType(&quot;text/html;charset=UTF-8&quot;);</span>
+
+
+<span class="nc" id="L40">        try (PrintWriter out = response.getWriter()) {</span>
+<span class="nc" id="L41">            request.setCharacterEncoding(StandardCharsets.UTF_8.name());</span>
+<span class="nc" id="L42">            int select = Integer.parseInt(request.getParameter(&quot;menu&quot;));</span>
+
+<span class="nc bnc" id="L44" title="All 2 branches missed.">            switch (select) {</span>
+//                case CommandType.WRITE_MENU:  // 메일 쓰기 화면
+//                    out = response.getWriter();
+//                    response.sendRedirect(homeDirectory + &quot;write_mail.jsp&quot;);
+//                    break;
+
+
+                case CommandType.SEND_MAIL_COMMAND: // 실제 메일 전송하기
+<span class="nc" id="L52">                    boolean status = sendMessage(request);</span>
+<span class="nc" id="L53">                    out.print(getMailTransportPopUp(status));</span>
+//                    out.flush();
+<span class="nc" id="L55">                    break;</span>
+
+                default:
+<span class="nc" id="L58">                    out.println(&quot;없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?&quot;);</span>
+                    break;
+            }
+        }
+<span class="nc" id="L62">    }</span>
+
+    private boolean sendMessage(HttpServletRequest request) {
+<span class="nc" id="L65">        boolean status = false;</span>
+
+        // 1. toAddress, ccAddress, subject, body, file1 정보를 파싱하여 추출
+<span class="nc" id="L68">        FormParser parser = new FormParser(request);</span>
+<span class="nc" id="L69">        parser.parse();</span>
+
+        // 2.  request 객체에서 HttpSession 객체 얻기
+<span class="nc" id="L72">        HttpSession session = request.getSession();</span>
+
+        // 3. HttpSession 객체에서 메일 서버, 메일 사용자 ID 정보 얻기
+<span class="nc" id="L75">        String host = (String) session.getAttribute(&quot;host&quot;);</span>
+<span class="nc" id="L76">        String userid = (String) session.getAttribute(&quot;userid&quot;);</span>
+
+        // 4. SmtpAgent 객체에 메일 관련 정보 설정
+<span class="nc" id="L79">        SmtpAgent agent = new SmtpAgent(host, userid);</span>
+<span class="nc" id="L80">        agent.setTo(parser.getToAddress());</span>
+<span class="nc" id="L81">        agent.setCc(parser.getCcAddress());</span>
+<span class="nc" id="L82">        agent.setSubj(parser.getSubject());</span>
+<span class="nc" id="L83">        agent.setBody(parser.getBody());</span>
+<span class="nc" id="L84">        String fileName = parser.getFileName();</span>
+<span class="nc" id="L85">        logger.trace(&quot;WriteMailHandler.sendMessage() : fileName = {}&quot;, fileName);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (fileName != null) {</span>
+<span class="nc" id="L87">            agent.setFile1(fileName);</span>
+        }
+
+        // 5. 메일 전송 권한 위임
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (agent.sendMessage()) {</span>
+<span class="nc" id="L92">            status = true;</span>
+        }
+<span class="nc" id="L94">        return status;</span>
+    }  // sendMessage()
+
+    private String getMailTransportPopUp(boolean success) {
+        String alertMessage;
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L100">            alertMessage = &quot;메일 전송이 성공했습니다.&quot;;</span>
+        } else {
+<span class="nc" id="L102">            alertMessage = &quot;메일 전송이 실패했습니다.&quot;;</span>
+        }
+
+<span class="nc" id="L105">        StringBuilder successPopUp = new StringBuilder();</span>
+<span class="nc" id="L106">        successPopUp.append(&quot;&lt;html&gt;&quot;);</span>
+<span class="nc" id="L107">        successPopUp.append(&quot;&lt;head&gt;&quot;);</span>
+
+<span class="nc" id="L109">        successPopUp.append(&quot;&lt;title&gt;메일 전송 결과&lt;/title&gt;&quot;);</span>
+<span class="nc" id="L110">        successPopUp.append(&quot;&lt;link type=\&quot;text/css\&quot; rel=\&quot;stylesheet\&quot; href=\&quot;css/main_style.css\&quot; /&gt;&quot;);</span>
+<span class="nc" id="L111">        successPopUp.append(&quot;&lt;/head&gt;&quot;);</span>
+<span class="nc" id="L112">        successPopUp.append(&quot;&lt;body onload=\&quot;goMainMenu()\&quot;&gt;&quot;);</span>
+<span class="nc" id="L113">        successPopUp.append(&quot;&lt;script type=\&quot;text/javascript\&quot;&gt;&quot;);</span>
+<span class="nc" id="L114">        successPopUp.append(&quot;function goMainMenu() {&quot;);</span>
+<span class="nc" id="L115">        successPopUp.append(&quot;alert(\&quot;&quot;);</span>
+<span class="nc" id="L116">        successPopUp.append(alertMessage);</span>
+<span class="nc" id="L117">        successPopUp.append(&quot;\&quot;); &quot;);</span>
+<span class="nc" id="L118">        successPopUp.append(&quot;window.location = \&quot;main_menu.jsp\&quot;; &quot;);</span>
+<span class="nc" id="L119">        successPopUp.append(&quot;}  &lt;/script&gt;&quot;);</span>
+<span class="nc" id="L120">        successPopUp.append(&quot;&lt;/body&gt;&lt;/html&gt;&quot;);</span>
+<span class="nc" id="L121">        return successPopUp.toString();</span>
+    }
+
+// &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;HttpServlet methods. Click on the + sign on the left to edit the code.&quot;&gt;
+
+    /**
+     * Handles the HTTP &lt;code&gt;GET&lt;/code&gt; method.
+     *
+     * @param request  servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException      if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+<span class="nc" id="L137">        processRequest(request, response);</span>
+
+
+<span class="nc" id="L140">    }</span>
+
+    /**
+     * Handles the HTTP &lt;code&gt;POST&lt;/code&gt; method.
+     *
+     * @param request  servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException      if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+<span class="nc" id="L153">        processRequest(request, response);</span>
+
+
+<span class="nc" id="L156">    }</span>
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+<span class="nc" id="L165">        return &quot;Short description&quot;;</span>
+
+    }// &lt;/editor-fold&gt;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

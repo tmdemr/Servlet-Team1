@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Servlet_Team1$index_jsp__1_.exec</a> &gt; <a href="index.source.html" class="el_package">cse.maven_webmail.model</a> &gt; <span class="el_source">MessageParser.java</span></div><h1>MessageParser.java</h1><pre class="source lang-java linenums">/*
+ * File: MessageParser.java
+ * Goal: 메일 메시지의 정보 추출(To, Cc, From, Subject, Body, Attached File)
+ */
+package cse.maven_webmail.model;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import javax.activation.DataHandler;
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.Multipart;
+import javax.mail.Part;
+import javax.mail.internet.MimeUtility;
+
+/**
+ * @author jongmin
+ */
+public class MessageParser {
+<span class="fc" id="L23">    private static final Logger logger = LoggerFactory.getLogger(MessageParser.class);</span>
+    private Message message;
+    private String toAddress;
+    private String fromAddress;
+    private String ccAddress;
+    private String sentDate;
+    private String subject;
+    private String body;
+    private String fileName;
+<span class="fc" id="L32">    private final String downloadTempDir = &quot;C:/temp/download/&quot;;</span>
+    private String userid;
+
+<span class="fc" id="L35">    public MessageParser(Message message, String userid) {</span>
+<span class="fc" id="L36">        this.message = message;</span>
+<span class="fc" id="L37">        this.userid = userid;</span>
+<span class="fc" id="L38">    }</span>
+
+    public boolean parse(boolean parseBody) {
+<span class="fc" id="L41">        boolean status = false;</span>
+
+        try {
+<span class="fc" id="L44">            getEnvelope(message);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">            if (parseBody) {</span>
+<span class="fc" id="L46">                getPart(message);</span>
+            }
+<span class="fc" id="L48">            printMessage(parseBody);</span>
+            //  예외가 발생하지 않았으므로 정상적으로 동작하였음.
+<span class="fc" id="L50">            status = true;</span>
+<span class="nc" id="L51">        } catch (Exception ex) {</span>
+<span class="nc" id="L52">            logger.error(&quot;MessageParser.parse() - Exception : {}&quot;, ex.getMessage());</span>
+<span class="fc" id="L53">        }</span>
+<span class="fc" id="L54">        return status;</span>
+
+    }
+
+    private void getEnvelope(Message m) throws Exception {
+<span class="fc" id="L59">        fromAddress = message.getFrom()[0].toString();  // 101122 LJM : replaces getMyFrom2()</span>
+<span class="fc" id="L60">        toAddress = getAddresses(message.getRecipients(Message.RecipientType.TO));</span>
+<span class="fc" id="L61">        Address[] addr = message.getRecipients(Message.RecipientType.CC);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (addr != null) {</span>
+<span class="nc" id="L63">            ccAddress = getAddresses(addr);</span>
+        } else {
+<span class="fc" id="L65">            ccAddress = &quot;&quot;;</span>
+        }
+<span class="fc" id="L67">        subject = message.getSubject();</span>
+<span class="fc" id="L68">        sentDate = message.getSentDate().toString();</span>
+<span class="fc" id="L69">        sentDate = sentDate.substring(0, sentDate.length() - 8);  // 8 for &quot;KST 20XX&quot;</span>
+<span class="fc" id="L70">    }</span>
+
+    // ref: http://www.oracle.com/technetwork/java/faq-135477.html#readattach
+    private void getPart(Part p) throws Exception {
+<span class="fc" id="L74">        String disp = p.getDisposition();</span>
+
+<span class="pc bpc" id="L76" title="1 of 4 branches missed.">        if (disp != null &amp;&amp; (disp.equalsIgnoreCase(Part.ATTACHMENT)</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                || disp.equalsIgnoreCase(Part.INLINE))) {  // 첨부 파일</span>
+//            fileName = p.getFileName();
+<span class="fc" id="L79">            fileName = MimeUtility.decodeText(p.getFileName());</span>
+//            fileName = fileName.replaceAll(&quot; &quot;, &quot;%20&quot;);
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">            if (fileName != null) {</span>
+<span class="fc" id="L82">                logger.trace(&quot;MessageParser.getPart() : file = {}&quot;, fileName);</span>
+                // 첨부 파일을 서버의 내려받기 임시 저장소에 저장
+<span class="fc" id="L84">                String tempUserDir = this.downloadTempDir + this.userid;</span>
+<span class="fc" id="L85">                File dir = new File(tempUserDir);</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">                if (!dir.exists()) {  // tempUserDir 생성</span>
+<span class="nc" id="L87">                    dir.mkdirs();</span>
+                }
+
+<span class="fc" id="L90">                String filename = MimeUtility.decodeText(p.getFileName());</span>
+                // 파일명에 &quot; &quot;가 있을 경우 서블릿에 파라미터로 전달시 문제 발생함.
+                // &quot; &quot;를 모두 &quot;_&quot;로 대체함.
+//                filename = filename.replaceAll(&quot;%20&quot;, &quot; &quot;);
+<span class="fc" id="L94">                DataHandler dh = p.getDataHandler();</span>
+<span class="fc" id="L95">                FileOutputStream fos = new FileOutputStream(tempUserDir + &quot;/&quot; + filename);</span>
+<span class="fc" id="L96">                dh.writeTo(fos);</span>
+<span class="fc" id="L97">                fos.flush();</span>
+<span class="fc" id="L98">                fos.close();</span>
+<span class="fc" id="L99">            }</span>
+        } else {  // 메일 본문
+<span class="fc bfc" id="L101" title="All 2 branches covered.">            if (p.isMimeType(&quot;text/*&quot;)) {</span>
+<span class="fc" id="L102">                body = (String) p.getContent();</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">                if (p.isMimeType(&quot;text/plain&quot;)) {</span>
+<span class="fc" id="L104">                    body = body.replaceAll(&quot;\r\n&quot;, &quot; &lt;br&gt;&quot;);</span>
+                }
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">            } else if (p.isMimeType(&quot;multipart/alternative&quot;)) {</span>
+                // html text보다  plain text 선호
+<span class="nc" id="L108">                Multipart mp = (Multipart) p.getContent();</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                for (int i = 0; i &lt; mp.getCount(); i++) {</span>
+<span class="nc" id="L110">                    Part bp = mp.getBodyPart(i);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                    if (bp.isMimeType(&quot;text/plain&quot;)) {  // &quot;text/html&quot;도 있을 것임.</span>
+<span class="nc" id="L112">                        getPart(bp);</span>
+                    }
+                }
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">            } else if (p.isMimeType(&quot;multipart/*&quot;)) {</span>
+<span class="fc" id="L116">                Multipart mp = (Multipart) p.getContent();</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">                for (int i = 0; i &lt; mp.getCount(); i++) {</span>
+<span class="fc" id="L118">                    getPart(mp.getBodyPart(i));</span>
+                }
+            }
+        }
+<span class="fc" id="L122">    }</span>
+
+    private void printMessage(boolean printBody) {
+<span class="fc" id="L125">        logger.trace(&quot;From: {}&quot;, fromAddress);</span>
+<span class="fc" id="L126">        logger.trace(&quot;To: {}&quot;, toAddress);</span>
+<span class="fc" id="L127">        logger.trace(&quot;CC: {}&quot;, ccAddress);</span>
+<span class="fc" id="L128">        logger.trace(&quot;Date: {}&quot;, sentDate);</span>
+<span class="fc" id="L129">        logger.trace(&quot;Subject: {}&quot;, subject);</span>
+
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (printBody) {</span>
+<span class="fc" id="L132">            logger.trace(&quot;본 문&quot;);</span>
+<span class="fc" id="L133">            logger.trace(&quot;---------------------------------&quot;);</span>
+<span class="fc" id="L134">            logger.trace(body);</span>
+<span class="fc" id="L135">            logger.trace(&quot;---------------------------------&quot;);</span>
+<span class="fc" id="L136">            logger.trace(&quot;첨부파일: {}&quot;, fileName);</span>
+        }
+<span class="fc" id="L138">    }</span>
+
+    private String getAddresses(Address[] addresses) {
+<span class="fc" id="L141">        StringBuilder buffer = new StringBuilder();</span>
+
+<span class="fc bfc" id="L143" title="All 2 branches covered.">        for (Address address : addresses) {</span>
+<span class="fc" id="L144">            buffer.append(address.toString());</span>
+<span class="fc" id="L145">            buffer.append(&quot;, &quot;);</span>
+        } // 마지막에 있는 &quot;, &quot; 삭제
+<span class="fc" id="L147">        int start = buffer.length() - 2;</span>
+<span class="fc" id="L148">        int end = buffer.length() - 1;</span>
+<span class="fc" id="L149">        buffer.delete(start, end);</span>
+<span class="fc" id="L150">        return buffer.toString();</span>
+    }
+
+    public String getBody() {
+<span class="fc" id="L154">        return body;</span>
+    }
+
+    public void setBody(String body) {
+<span class="nc" id="L158">        this.body = body;</span>
+<span class="nc" id="L159">    }</span>
+
+    public String getCcAddress() {
+<span class="fc" id="L162">        return ccAddress;</span>
+    }
+
+    public void setCcAddress(String ccAddress) {
+<span class="nc" id="L166">        this.ccAddress = ccAddress;</span>
+<span class="nc" id="L167">    }</span>
+
+    public String getFileName() {
+<span class="fc" id="L170">        return fileName;</span>
+    }
+
+    public void setFileName(String fileName) {
+<span class="nc" id="L174">        this.fileName = fileName;</span>
+<span class="nc" id="L175">    }</span>
+
+    public String getFromAddress() {
+<span class="fc" id="L178">        return fromAddress;</span>
+    }
+
+    public void setFromAddress(String fromAddress) {
+<span class="nc" id="L182">        this.fromAddress = fromAddress;</span>
+<span class="nc" id="L183">    }</span>
+
+    public String getSentDate() {
+<span class="fc" id="L186">        return sentDate;</span>
+    }
+
+    public void setSentDate(String sentDate) {
+<span class="nc" id="L190">        this.sentDate = sentDate;</span>
+<span class="nc" id="L191">    }</span>
+
+    public String getSubject() {
+<span class="fc" id="L194">        return subject;</span>
+    }
+
+    public void setSubject(String subject) {
+<span class="nc" id="L198">        this.subject = subject;</span>
+<span class="nc" id="L199">    }</span>
+
+    public String getToAddress() {
+<span class="fc" id="L202">        return toAddress;</span>
+    }
+
+    public void setToAddress(String toAddress) {
+<span class="nc" id="L206">        this.toAddress = toAddress;</span>
+<span class="nc" id="L207">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

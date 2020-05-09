@@ -10,12 +10,12 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="maven_webmail" target="1.7" />
+      <module name="maven_webmail" target="11" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="maven_webmail" options="-endorseddirs C:\Users\Java\Desktop\maven_webmail\target/endorsed" />
+      <module name="maven_webmail" options="-endorseddirs C:\Users\Java\Documents\GitHub\Servlet-Team1\target/endorsed" />
     </option>
   </component>
 </project>

@@ -6,10 +6,10 @@
         웹메일 시스템으로 사용할 수 있게 해주는데 있다.
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" language="java" %>
 <%@page import="cse.maven_webmail.control.CommandType"%>
 
-<!DOCTYPE html>
+
 
 <%
             if (session.isNew()) {
@@ -19,8 +19,8 @@
                 //session.setMaxInactiveInterval(session.getMaxInactiveInterval() * 2);
             }
 %>
-
-<html>
+<!DOCTYPE>
+<html lang="kr">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>로그인 화면</title>

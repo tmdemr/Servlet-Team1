@@ -9,44 +9,46 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import cse.maven_webmail.model.Pop3Agent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author jongmin
  */
 public class ReadMailHandler extends HttpServlet {
-
+    private static final Logger logger = LoggerFactory.getLogger(ReadMailHandler.class);
     private final String homeDirectory = "/maven_webmail/";
     private final String uploadTempDir = "C:/temp/upload";
     private final String uploadTargetDir = "C:/temp/upload";
 
-    /** 
+    /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
 
-        request.setCharacterEncoding("UTF-8");
-        int select = Integer.parseInt((String) request.getParameter("menu"));
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        int select = Integer.parseInt(request.getParameter("menu"));
 
         switch (select) {
             case CommandType.DELETE_MAIL_COMMAND:
-                try (PrintWriter out = response.getWriter()) {
-                    deleteMessage(request);
-                    response.sendRedirect("main_menu.jsp");
-                }
+                deleteMessage(request);
+                response.sendRedirect("main_menu.jsp");
                 break;
 
             case CommandType.DOWNLOAD_COMMAND: // 파일 다운로드 처리
@@ -65,14 +67,14 @@ public class ReadMailHandler extends HttpServlet {
     private void download(HttpServletRequest request, HttpServletResponse response) { //throws IOException {
         response.setContentType("application/octet-stream");
 
-        ServletOutputStream sos = null;
+        ServletOutputStream sos;
 
         try {
             /* TODO output your page here */
-            request.setCharacterEncoding("UTF-8");
+            request.setCharacterEncoding(StandardCharsets.UTF_8.name());
             // LJM 041203 - 아래와 같이 해서 한글파일명 제대로 인식되는 것 확인했음.
             String fileName = request.getParameter("filename");
-            System.out.println(">>>>>> DOWNLOAD: file name = " + fileName);
+            logger.info(">>>>>> DOWNLOAD: file name = {}", fileName);
             // fileName에 있는 ' '는 '+'가 파라미터로 전송되는 과정에서 변한 것이므로
             // 다시 변환시켜줌.
 //            fileName = fileName.replaceAll(" ", "+");
@@ -96,14 +98,15 @@ public class ReadMailHandler extends HttpServlet {
 //                    MimeUtility.encodeText(fileName, "UTF-8", "B") + ";");
 
             response.setHeader("Content-Disposition", "attachment; filename="
-                    + URLEncoder.encode(fileName, "UTF-8") + ";");
+                    + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + ";");
 
             File f = new File(downloadDir + userid + "/" + fileName);
             byte[] b = new byte[(int) f.length()];
             // try-with-resource 문은 fis를 명시적으로 close해 주지 않아도 됨.
             try (FileInputStream fis = new FileInputStream(f)) {
                 fis.read(b);
-            };
+            }
+            ;
 
             // 다운로드
             sos = response.getOutputStream();
@@ -111,15 +114,15 @@ public class ReadMailHandler extends HttpServlet {
             sos.flush();
             sos.close();
         } catch (Exception ex) {
-            System.out.println("====== DOWNLOAD exception : " + ex);
-        } finally {
-            // 다운로드후 파일 삭제
-            //f.delete();
+            logger.error("====== DOWNLOAD exception : {}", ex.getMessage());
         }
+        // 다운로드후 파일 삭제
+        //f.delete();
+
     }
 
     private boolean deleteMessage(HttpServletRequest request) {
-        int msgid = Integer.parseInt((String) request.getParameter("msgid"));
+        int msgid = Integer.parseInt(request.getParameter("msgid"));
 
         HttpSession httpSession = request.getSession();
         String host = (String) httpSession.getAttribute("host");
@@ -127,17 +130,18 @@ public class ReadMailHandler extends HttpServlet {
         String password = (String) httpSession.getAttribute("password");
 
         Pop3Agent pop3 = new Pop3Agent(host, userid, password);
-        boolean status = pop3.deleteMessage(msgid, true);
-        return status;
+        return pop3.deleteMessage(msgid, true);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
+
+    /**
      * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -145,12 +149,13 @@ public class ReadMailHandler extends HttpServlet {
         processRequest(request, response);
     }
 
-    /** 
+    /**
      * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -158,8 +163,9 @@ public class ReadMailHandler extends HttpServlet {
         processRequest(request, response);
     }
 
-    /** 
+    /**
      * Returns a short description of the servlet.
+     *
      * @return a String containing servlet description
      */
     @Override

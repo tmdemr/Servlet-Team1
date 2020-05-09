@@ -4,6 +4,9 @@
  */
 package cse.maven_webmail.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import javax.activation.DataHandler;
@@ -14,11 +17,10 @@ import javax.mail.Part;
 import javax.mail.internet.MimeUtility;
 
 /**
- *
  * @author jongmin
  */
 public class MessageParser {
-
+    private static final Logger logger = LoggerFactory.getLogger(MessageParser.class);
     private Message message;
     private String toAddress;
     private String fromAddress;
@@ -47,11 +49,10 @@ public class MessageParser {
             //  예외가 발생하지 않았으므로 정상적으로 동작하였음.
             status = true;
         } catch (Exception ex) {
-            System.out.println("MessageParser.parse() - Exception : " + ex);
-            status = false;
-        } finally {
-            return status;
+            logger.error("MessageParser.parse() - Exception : {}", ex.getMessage());
         }
+        return status;
+
     }
 
     private void getEnvelope(Message m) throws Exception {
@@ -78,12 +79,12 @@ public class MessageParser {
             fileName = MimeUtility.decodeText(p.getFileName());
 //            fileName = fileName.replaceAll(" ", "%20");
             if (fileName != null) {
-                System.out.println("MessageParser.getPart() : file = " + fileName);
+                logger.trace("MessageParser.getPart() : file = {}", fileName);
                 // 첨부 파일을 서버의 내려받기 임시 저장소에 저장
                 String tempUserDir = this.downloadTempDir + this.userid;
                 File dir = new File(tempUserDir);
                 if (!dir.exists()) {  // tempUserDir 생성
-                    dir.mkdir();
+                    dir.mkdirs();
                 }
 
                 String filename = MimeUtility.decodeText(p.getFileName());
@@ -121,18 +122,18 @@ public class MessageParser {
     }
 
     private void printMessage(boolean printBody) {
-        System.out.println("From: " + fromAddress);
-        System.out.println("To: " + toAddress);
-        System.out.println("CC: " + ccAddress);
-        System.out.println("Date: " + sentDate);
-        System.out.println("Subject: " + subject);
+        logger.trace("From: {}", fromAddress);
+        logger.trace("To: {}", toAddress);
+        logger.trace("CC: {}", ccAddress);
+        logger.trace("Date: {}", sentDate);
+        logger.trace("Subject: {}", subject);
 
         if (printBody) {
-            System.out.println("본 문");
-            System.out.println("---------------------------------");
-            System.out.println(body);
-            System.out.println("---------------------------------");
-            System.out.println("첨부파일: " + fileName);
+            logger.trace("본 문");
+            logger.trace("---------------------------------");
+            logger.trace(body);
+            logger.trace("---------------------------------");
+            logger.trace("첨부파일: {}", fileName);
         }
     }
 

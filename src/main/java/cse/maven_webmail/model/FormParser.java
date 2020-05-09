@@ -5,12 +5,16 @@
 package cse.maven_webmail.model;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 책임: enctype이 multipart/form-data인 HTML 폼에 있는 각 필드와 파일 정보 추출
@@ -18,7 +22,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
  * @author jongmin
  */
 public class FormParser {
-
+    private static final Logger logger = LoggerFactory.getLogger(FormParser.class);
     private HttpServletRequest request;
     private String toAddress = null;
     private String ccAddress = null;
@@ -79,9 +83,17 @@ public class FormParser {
         this.toAddress = toAddress;
     }
 
+    private void checkFolder() {
+        File uploadTargetFolder = new File(uploadTargetDir);
+        if (!uploadTargetFolder.exists()) {
+            uploadTargetFolder.mkdirs();
+        }
+    }
+
     public void parse() {
+        checkFolder(); // 폴더 없을 경우 만들게 추가했음 - 남영우
         try {
-            request.setCharacterEncoding("UTF-8");
+            request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
             // 1. 디스크 기반 파일 항목에 대한 팩토리 생성
             DiskFileItemFactory diskFactory = new DiskFileItemFactory();
@@ -92,13 +104,11 @@ public class FormParser {
             ServletFileUpload upload = new ServletFileUpload(diskFactory);
 
             // 4. request 객체 파싱
-            List fileItems = upload.parseRequest(request);
-            Iterator i = fileItems.iterator();
-            while (i.hasNext()) {
-                FileItem fi = (FileItem) i.next();
+            List<FileItem> fileItems = upload.parseRequest(request);
+            for (FileItem fi : fileItems) {
                 if (fi.isFormField()) {  // 5. 폼 필드 처리
                     String fieldName = fi.getFieldName();
-                    String item = fi.getString("UTF-8");
+                    String item = fi.getString(StandardCharsets.UTF_8.name());
 
                     if (fieldName.equals("to")) {
                         setToAddress(item);  // 200102 LJM - @ 이후의 서버 주소 제거
@@ -112,7 +122,7 @@ public class FormParser {
                 } else {  // 6. 첨부 파일 처리
                     if (!(fi.getName() == null || fi.getName().equals(""))) {
                         String fieldName = fi.getFieldName();
-                        System.out.println("ATTACHED FILE : " + fieldName + " = " + fi.getName());
+                        logger.info("ATTACHED FILE : {} = {}", fieldName, fi.getName());
 
                         // 절대 경로 저장
                         setFileName(uploadTargetDir + "/" + fi.getName());
@@ -125,7 +135,7 @@ public class FormParser {
                 }
             }
         } catch (Exception ex) {
-            System.out.println("FormParser.parse() : exception = " + ex);
+            logger.error("FormParser.parse() : exception = {}", ex.getMessage());
         }
     }  // parse()
 }

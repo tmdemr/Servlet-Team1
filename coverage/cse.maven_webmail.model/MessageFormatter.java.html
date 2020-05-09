@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageFormatter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Servlet_Team1$index_jsp__1_.exec</a> &gt; <a href="index.source.html" class="el_package">cse.maven_webmail.model</a> &gt; <span class="el_source">MessageFormatter.java</span></div><h1>MessageFormatter.java</h1><pre class="source lang-java linenums">/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cse.maven_webmail.model;
+
+import cse.maven_webmail.control.CommandType;
+
+import javax.mail.Message;
+
+/**
+ * @author jongmin
+ */
+public class MessageFormatter {
+
+    private String userid;  // 파일 임시 저장 디렉토리 생성에 필요
+
+<span class="fc" id="L18">    public MessageFormatter(String userid) {</span>
+<span class="fc" id="L19">        this.userid = userid;</span>
+<span class="fc" id="L20">    }</span>
+
+    public String getMessageTable(Message[] messages) {
+<span class="fc" id="L23">        StringBuilder buffer = new StringBuilder();</span>
+
+        // 메시지 제목 보여주기
+<span class="fc" id="L26">        buffer.append(&quot;&lt;table&gt;&quot;);  // table start</span>
+<span class="fc" id="L27">        buffer.append(&quot;&lt;tr&gt; &quot;</span>
+                + &quot; &lt;th&gt; No. &lt;/td&gt; &quot;
+                + &quot; &lt;th&gt; 보낸 사람 &lt;/td&gt;&quot;
+                + &quot; &lt;th&gt; 제목 &lt;/td&gt;     &quot;
+                + &quot; &lt;th&gt; 보낸 날짜 &lt;/td&gt;   &quot;
+                + &quot; &lt;th&gt; 삭제 &lt;/td&gt;   &quot;
+                + &quot; &lt;/tr&gt;&quot;);
+
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        for (int i = messages.length - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L36">            MessageParser parser = new MessageParser(messages[i], userid);</span>
+<span class="fc" id="L37">            parser.parse(false);  // envelope 정보만 필요</span>
+            // 메시지 헤더 포맷
+            // 추출한 정보를 출력 포맷 사용하여 스트링으로 만들기
+<span class="fc" id="L40">            buffer.append(&quot;&lt;tr&gt; &quot; + &quot; &lt;td id=no&gt;&quot;).append(i + 1).append(&quot; &lt;/td&gt; &quot;)</span>
+<span class="fc" id="L41">                    .append(&quot; &lt;td id=sender&gt;&quot;).append(parser.getFromAddress())</span>
+<span class="fc" id="L42">                    .append(&quot;&lt;/td&gt;&quot;).append(&quot; &lt;td id=subject&gt; &quot;)</span>
+<span class="fc" id="L43">                    .append(&quot; &lt;a href=show_message.jsp?msgid=&quot;).append(i + 1)</span>
+<span class="fc" id="L44">                    .append(&quot; title=\&quot;메일 보기\&quot;&gt; &quot;).append(parser.getSubject())</span>
+<span class="fc" id="L45">                    .append(&quot;&lt;/a&gt; &lt;/td&gt;&quot;).append(&quot; &lt;td id=date&gt;&quot;).append(parser.getSentDate())</span>
+<span class="fc" id="L46">                    .append(&quot;&lt;/td&gt;&quot;).append(&quot; &lt;td id=delete&gt;&quot;).append(&quot;&lt;a href=ReadMail.do?menu=&quot;)</span>
+<span class="fc" id="L47">                    .append(CommandType.DELETE_MAIL_COMMAND).append(&quot;&amp;msgid=&quot;).append(i + 1)</span>
+<span class="fc" id="L48">                    .append(&quot;&gt; 삭제 &lt;/a&gt;&quot;).append(&quot;&lt;/td&gt;&quot;).append(&quot; &lt;/tr&gt;&quot;);</span>
+        }
+<span class="fc" id="L50">        buffer.append(&quot;&lt;/table&gt;&quot;);</span>
+
+<span class="fc" id="L52">        return buffer.toString();</span>
+//        return &quot;MessageFormatter 테이블 결과&quot;;
+    }
+
+    public String getMessage(Message message) {
+<span class="fc" id="L57">        StringBuilder buffer = new StringBuilder();</span>
+
+<span class="fc" id="L59">        MessageParser parser = new MessageParser(message, userid);</span>
+<span class="fc" id="L60">        parser.parse(true);</span>
+
+<span class="fc" id="L62">        buffer.append(&quot;보낸 사람: &quot;).append(parser.getFromAddress()).append(&quot; &lt;br&gt;&quot;);</span>
+<span class="fc" id="L63">        buffer.append(&quot;받은 사람: &quot;).append(parser.getToAddress()).append(&quot; &lt;br&gt;&quot;);</span>
+<span class="fc" id="L64">        buffer.append(&quot;Cc &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; : &quot;).append(parser.getCcAddress()).append(&quot; &lt;br&gt;&quot;);</span>
+<span class="fc" id="L65">        buffer.append(&quot;보낸 날짜: &quot;).append(parser.getSentDate()).append(&quot; &lt;br&gt;&quot;);</span>
+<span class="fc" id="L66">        buffer.append(&quot;제 &amp;nbsp;&amp;nbsp;&amp;nbsp;  목: &quot;).append(parser.getSubject()).append(&quot; &lt;br&gt; &lt;hr&gt;&quot;);</span>
+
+<span class="fc" id="L68">        buffer.append(parser.getBody());</span>
+
+<span class="fc" id="L70">        String attachedFile = parser.getFileName();</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (attachedFile != null) {</span>
+<span class="fc" id="L72">            buffer.append(&quot;&lt;br&gt; &lt;hr&gt; 첨부파일: &lt;a href=ReadMail.do?menu=&quot; + CommandType.DOWNLOAD_COMMAND + &quot;&amp;userid=&quot;)</span>
+<span class="fc" id="L73">                    .append(this.userid).append(&quot;&amp;filename=&quot;).append(attachedFile.replaceAll(&quot; &quot;, &quot;%20&quot;))</span>
+<span class="fc" id="L74">                    .append(&quot; target=_top&gt; &quot;).append(attachedFile).append(&quot;&lt;/a&gt; &lt;br&gt;&quot;);</span>
+        }
+
+<span class="fc" id="L77">        return buffer.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

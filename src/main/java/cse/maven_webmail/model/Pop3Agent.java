@@ -5,6 +5,9 @@
  */
 package cse.maven_webmail.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Properties;
 import javax.mail.FetchProfile;
 import javax.mail.Flags;
@@ -14,11 +17,10 @@ import javax.mail.Session;
 import javax.mail.Store;
 
 /**
- *
  * @author jongmin
  */
 public class Pop3Agent {
-
+    private static final Logger logger = LoggerFactory.getLogger(Pop3Agent.class);
     private String host;
     private String userid;
     private String password;
@@ -37,24 +39,24 @@ public class Pop3Agent {
     }
 
     public boolean validate() {
-        boolean status = false;
+        boolean status;
 
         try {
             status = connectToStore();
             store.close();
         } catch (Exception ex) {
-            System.out.println("Pop3Agent.validate() error : " + ex);
+            logger.error("Pop3Agent.validate() error : {}", ex.getMessage());
             status = false;  // for clarity
-        } finally {
-            return status;
         }
+        return status;
+
     }
 
     public boolean deleteMessage(int msgid, boolean really_delete) {
         boolean status = false;
 
         if (!connectToStore()) {
-            return status;
+            return false;
         }
 
         try {
@@ -74,10 +76,10 @@ public class Pop3Agent {
             store.close();
             status = true;
         } catch (Exception ex) {
-            System.out.println("deleteMessage() error: " + ex);
-        } finally {
-            return status;
+            logger.error("deleteMessage() error: {}", ex.getMessage());
         }
+        return status;
+
     }
 
     /*
@@ -85,7 +87,7 @@ public class Pop3Agent {
      */
     public String getMessageList() {
         String result = "";
-        Message[] messages = null;
+        Message[] messages;
 
         if (!connectToStore()) {  // 3.1
             System.err.println("POP3 connection failed!");
@@ -110,11 +112,11 @@ public class Pop3Agent {
             folder.close(true);  // 3.7
             store.close();       // 3.8
         } catch (Exception ex) {
-            System.out.println("Pop3Agent.getMessageList() : exception = " + ex);
+            logger.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
             result = "Pop3Agent.getMessageList() : exception = " + ex;
-        } finally {
-            return result;
         }
+        return result;
+
     }
 
     public String getMessage(int n) {
@@ -137,11 +139,11 @@ public class Pop3Agent {
             folder.close(true);
             store.close();
         } catch (Exception ex) {
-            System.out.println("Pop3Agent.getMessageList() : exception = " + ex);
+            logger.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
             result = "Pop3Agent.getMessage() : exception = " + ex;
-        } finally {
-            return result;
         }
+        return result;
+
     }
 
     private boolean connectToStore() {
@@ -162,9 +164,9 @@ public class Pop3Agent {
             status = true;
         } catch (Exception ex) {
             exceptionType = ex.toString();
-        } finally {
-            return status;
         }
+        return status;
+
     }
 
     public String getHost() {

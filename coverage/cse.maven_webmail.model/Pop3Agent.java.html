@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Pop3Agent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Servlet_Team1$index_jsp__1_.exec</a> &gt; <a href="index.source.html" class="el_package">cse.maven_webmail.model</a> &gt; <span class="el_source">Pop3Agent.java</span></div><h1>Pop3Agent.java</h1><pre class="source lang-java linenums">/*
+ * File: Pop3Agent.java
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cse.maven_webmail.model;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+import javax.mail.FetchProfile;
+import javax.mail.Flags;
+import javax.mail.Folder;
+import javax.mail.Message;
+import javax.mail.Session;
+import javax.mail.Store;
+
+/**
+ * @author jongmin
+ */
+public class Pop3Agent {
+<span class="fc" id="L23">    private static final Logger logger = LoggerFactory.getLogger(Pop3Agent.class);</span>
+    private String host;
+    private String userid;
+    private String password;
+
+    private Store store;
+
+    private String exceptionType;
+
+<span class="fc" id="L32">    public Pop3Agent() {</span>
+<span class="fc" id="L33">    }</span>
+
+<span class="fc" id="L35">    public Pop3Agent(String host, String userid, String password) {</span>
+<span class="fc" id="L36">        this.host = host;</span>
+<span class="fc" id="L37">        this.userid = userid;</span>
+<span class="fc" id="L38">        this.password = password;</span>
+<span class="fc" id="L39">    }</span>
+
+    public boolean validate() {
+        boolean status;
+
+        try {
+<span class="fc" id="L45">            status = connectToStore();</span>
+<span class="fc" id="L46">            store.close();</span>
+<span class="nc" id="L47">        } catch (Exception ex) {</span>
+<span class="nc" id="L48">            logger.error(&quot;Pop3Agent.validate() error : {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L49">            status = false;  // for clarity</span>
+<span class="fc" id="L50">        }</span>
+<span class="fc" id="L51">        return status;</span>
+
+    }
+
+    public boolean deleteMessage(int msgid, boolean really_delete) {
+<span class="nc" id="L56">        boolean status = false;</span>
+
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (!connectToStore()) {</span>
+<span class="nc" id="L59">            return false;</span>
+        }
+
+        try {
+            // Folder 설정
+//            Folder folder = store.getDefaultFolder();
+<span class="nc" id="L65">            Folder folder = store.getFolder(&quot;INBOX&quot;);</span>
+<span class="nc" id="L66">            folder.open(Folder.READ_WRITE);</span>
+
+            // Message에 DELETED flag 설정
+<span class="nc" id="L69">            Message msg = folder.getMessage(msgid);</span>
+<span class="nc" id="L70">            msg.setFlag(Flags.Flag.DELETED, really_delete);</span>
+
+            // 폴더에서 메시지 삭제
+            // Message [] expungedMessage = folder.expunge();
+            // &lt;-- 현재 지원 안 되고 있음. 폴더를 close()할 때 expunge해야 함.
+<span class="nc" id="L75">            folder.close(true);  // expunge == true</span>
+<span class="nc" id="L76">            store.close();</span>
+<span class="nc" id="L77">            status = true;</span>
+<span class="nc" id="L78">        } catch (Exception ex) {</span>
+<span class="nc" id="L79">            logger.error(&quot;deleteMessage() error: {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L80">        }</span>
+<span class="nc" id="L81">        return status;</span>
+
+    }
+
+    /*
+     * 페이지 단위로 메일 목록을 보여주어야 함.
+     */
+    public String getMessageList() {
+<span class="fc" id="L89">        String result = &quot;&quot;;</span>
+        Message[] messages;
+
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (!connectToStore()) {  // 3.1</span>
+<span class="nc" id="L93">            System.err.println(&quot;POP3 connection failed!&quot;);</span>
+<span class="nc" id="L94">            return &quot;POP3 연결이 되지 않아 메일 목록을 볼 수 없습니다.&quot;;</span>
+        }
+
+        try {
+            // 메일 폴더 열기
+<span class="fc" id="L99">            Folder folder = store.getFolder(&quot;INBOX&quot;);  // 3.2</span>
+<span class="fc" id="L100">            folder.open(Folder.READ_ONLY);  // 3.3</span>
+
+            // 현재 수신한 메시지 모두 가져오기
+<span class="fc" id="L103">            messages = folder.getMessages();      // 3.4</span>
+<span class="fc" id="L104">            FetchProfile fp = new FetchProfile();</span>
+            // From, To, Cc, Bcc, ReplyTo, Subject &amp; Date
+<span class="fc" id="L106">            fp.add(FetchProfile.Item.ENVELOPE);</span>
+<span class="fc" id="L107">            folder.fetch(messages, fp);</span>
+
+<span class="fc" id="L109">            MessageFormatter formatter = new MessageFormatter(userid);  //3.5</span>
+<span class="fc" id="L110">            result = formatter.getMessageTable(messages);   // 3.6</span>
+
+<span class="fc" id="L112">            folder.close(true);  // 3.7</span>
+<span class="fc" id="L113">            store.close();       // 3.8</span>
+<span class="nc" id="L114">        } catch (Exception ex) {</span>
+<span class="nc" id="L115">            logger.error(&quot;Pop3Agent.getMessageList() : exception = {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L116">            result = &quot;Pop3Agent.getMessageList() : exception = &quot; + ex;</span>
+<span class="fc" id="L117">        }</span>
+<span class="fc" id="L118">        return result;</span>
+
+    }
+
+    public String getMessage(int n) {
+<span class="fc" id="L123">        String result = &quot;POP3  서버 연결이 되지 않아 메시지를 볼 수 없습니다.&quot;;</span>
+
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!connectToStore()) {</span>
+<span class="nc" id="L126">            System.err.println(&quot;POP3 connection failed!&quot;);</span>
+<span class="nc" id="L127">            return result;</span>
+        }
+
+        try {
+<span class="fc" id="L131">            Folder folder = store.getFolder(&quot;INBOX&quot;);</span>
+<span class="fc" id="L132">            folder.open(Folder.READ_ONLY);</span>
+
+<span class="fc" id="L134">            Message message = folder.getMessage(n);</span>
+
+<span class="fc" id="L136">            MessageFormatter formatter = new MessageFormatter(userid);</span>
+<span class="fc" id="L137">            result = formatter.getMessage(message);</span>
+
+<span class="fc" id="L139">            folder.close(true);</span>
+<span class="fc" id="L140">            store.close();</span>
+<span class="nc" id="L141">        } catch (Exception ex) {</span>
+<span class="nc" id="L142">            logger.error(&quot;Pop3Agent.getMessageList() : exception = {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L143">            result = &quot;Pop3Agent.getMessage() : exception = &quot; + ex;</span>
+<span class="fc" id="L144">        }</span>
+<span class="fc" id="L145">        return result;</span>
+
+    }
+
+    private boolean connectToStore() {
+<span class="fc" id="L150">        boolean status = false;</span>
+<span class="fc" id="L151">        Properties props = System.getProperties();</span>
+<span class="fc" id="L152">        props.setProperty(&quot;mail.pop3.host&quot;, host);</span>
+<span class="fc" id="L153">        props.setProperty(&quot;mail.pop3.user&quot;, userid);</span>
+<span class="fc" id="L154">        props.setProperty(&quot;mail.pop3.apop.enable&quot;, &quot;false&quot;);</span>
+<span class="fc" id="L155">        props.setProperty(&quot;mail.pop3.disablecapa&quot;, &quot;true&quot;);  // 200102 LJM - added cf. https://javaee.github.io/javamail/docs/api/com/sun/mail/pop3/package-summary.html</span>
+<span class="fc" id="L156">        props.setProperty(&quot;mail.debug&quot;, &quot;true&quot;);</span>
+
+<span class="fc" id="L158">        Session session = Session.getInstance(props);</span>
+<span class="fc" id="L159">        session.setDebug(true);</span>
+
+        try {
+<span class="fc" id="L162">            store = session.getStore(&quot;pop3&quot;);</span>
+<span class="fc" id="L163">            store.connect(host, userid, password);</span>
+<span class="fc" id="L164">            status = true;</span>
+<span class="nc" id="L165">        } catch (Exception ex) {</span>
+<span class="nc" id="L166">            exceptionType = ex.toString();</span>
+<span class="fc" id="L167">        }</span>
+<span class="fc" id="L168">        return status;</span>
+
+    }
+
+    public String getHost() {
+<span class="nc" id="L173">        return host;</span>
+    }
+
+    public void setHost(String host) {
+<span class="fc" id="L177">        this.host = host;</span>
+<span class="fc" id="L178">    }</span>
+
+    public String getPassword() {
+<span class="nc" id="L181">        return password;</span>
+    }
+
+    public void setPassword(String password) {
+<span class="fc" id="L185">        this.password = password;</span>
+<span class="fc" id="L186">    }</span>
+
+    public String getUserid() {
+<span class="nc" id="L189">        return userid;</span>
+    }
+
+    public void setUserid(String userid) {
+<span class="fc" id="L193">        this.userid = userid;</span>
+<span class="fc" id="L194">    }</span>
+}  // class Pop3Agent
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

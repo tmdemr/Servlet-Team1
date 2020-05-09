@@ -5,7 +5,11 @@
 package cse.maven_webmail.model;
 
 import com.sun.mail.smtp.SMTPMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -20,13 +24,12 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
 /**
- *
  * @author jongmin
  */
 public class SmtpAgent {
-
-    protected String host = null;
-    protected String userid = null;
+    private static final Logger logger = LoggerFactory.getLogger(SmtpAgent.class);
+    protected String host;
+    protected String userid;
     protected String to = null;
     protected String cc = null;
     protected String subj = null;
@@ -103,7 +106,8 @@ public class SmtpAgent {
         // 1. property 설정
         Properties props = System.getProperties();
         props.put("mail.smtp.host", this.host);
-        System.out.println("SMTP host : " + props.get("mail.smtp.host"));
+        logger.trace("SMTP host : {}", props.get("mail.smtp.host"));
+
 
         // 2. session 가져오기
         Session session = Session.getDefaultInstance(props, null);
@@ -162,8 +166,9 @@ public class SmtpAgent {
                 a1.setDataHandler(new DataHandler(src));
                 int index = this.file1.lastIndexOf('/');
                 String fileName = this.file1.substring(index + 1);
+                fileName = fileName.replace("\\", "/");
                 // "B": base64, "Q": quoted-printable
-                a1.setFileName(MimeUtility.encodeText(fileName, "UTF-8", "B"));
+                a1.setFileName(MimeUtility.encodeText(fileName, StandardCharsets.UTF_8.name(), "B"));
                 mp.addBodyPart(a1);
             }
             msg.setContent(mp);
@@ -176,14 +181,13 @@ public class SmtpAgent {
             if (this.file1 != null) {
                 File f = new File(this.file1);
                 if (!f.delete()) {
-                    System.err.println(this.file1 + " 파일 삭제가 제대로 안 됨.");
+                    logger.error("{} 파일 삭제가 제대로 안 됨", this.file1);
                 }
             }
             status = true;
         } catch (Exception ex) {
-            System.out.println("sendMessage() error: " + ex);
-        } finally {
-            return status;
+            logger.error("sendMessage() error : {}", ex.getMessage());
         }
+        return status;
     }  // sendMessage()
 }

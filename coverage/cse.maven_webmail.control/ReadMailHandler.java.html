@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReadMailHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Servlet_Team1$index_jsp__1_.exec</a> &gt; <a href="index.source.html" class="el_package">cse.maven_webmail.control</a> &gt; <span class="el_source">ReadMailHandler.java</span></div><h1>ReadMailHandler.java</h1><pre class="source lang-java linenums">/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cse.maven_webmail.control;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import cse.maven_webmail.model.Pop3Agent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author jongmin
+ */
+<span class="fc" id="L27">public class ReadMailHandler extends HttpServlet {</span>
+<span class="fc" id="L28">    private static final Logger logger = LoggerFactory.getLogger(ReadMailHandler.class);</span>
+<span class="fc" id="L29">    private final String homeDirectory = &quot;/maven_webmail/&quot;;</span>
+<span class="fc" id="L30">    private final String uploadTempDir = &quot;C:/temp/upload&quot;;</span>
+<span class="fc" id="L31">    private final String uploadTargetDir = &quot;C:/temp/upload&quot;;</span>
+
+    /**
+     * Processes requests for both HTTP &lt;code&gt;GET&lt;/code&gt; and &lt;code&gt;POST&lt;/code&gt; methods.
+     *
+     * @param request  servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException      if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+<span class="fc" id="L43">        response.setContentType(&quot;text/html;charset=UTF-8&quot;);</span>
+
+<span class="fc" id="L45">        request.setCharacterEncoding(StandardCharsets.UTF_8.name());</span>
+<span class="fc" id="L46">        int select = Integer.parseInt(request.getParameter(&quot;menu&quot;));</span>
+
+<span class="pc bpc" id="L48" title="2 of 3 branches missed.">        switch (select) {</span>
+            case CommandType.DELETE_MAIL_COMMAND:
+<span class="nc" id="L50">                deleteMessage(request);</span>
+<span class="nc" id="L51">                response.sendRedirect(&quot;main_menu.jsp&quot;);</span>
+<span class="nc" id="L52">                break;</span>
+
+            case CommandType.DOWNLOAD_COMMAND: // 파일 다운로드 처리
+<span class="fc" id="L55">                download(request, response);</span>
+<span class="fc" id="L56">                break;</span>
+
+            default:
+<span class="nc" id="L59">                try (PrintWriter out = response.getWriter()) {</span>
+<span class="nc" id="L60">                    out.println(&quot;없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?&quot;);</span>
+                }
+                break;
+
+        }
+<span class="fc" id="L65">    }</span>
+
+    private void download(HttpServletRequest request, HttpServletResponse response) { //throws IOException {
+<span class="fc" id="L68">        response.setContentType(&quot;application/octet-stream&quot;);</span>
+
+        ServletOutputStream sos;
+
+        try {
+            /* TODO output your page here */
+<span class="fc" id="L74">            request.setCharacterEncoding(StandardCharsets.UTF_8.name());</span>
+            // LJM 041203 - 아래와 같이 해서 한글파일명 제대로 인식되는 것 확인했음.
+<span class="fc" id="L76">            String fileName = request.getParameter(&quot;filename&quot;);</span>
+<span class="fc" id="L77">            logger.info(&quot;&gt;&gt;&gt;&gt;&gt;&gt; DOWNLOAD: file name = {}&quot;, fileName);</span>
+            // fileName에 있는 ' '는 '+'가 파라미터로 전송되는 과정에서 변한 것이므로
+            // 다시 변환시켜줌.
+//            fileName = fileName.replaceAll(&quot; &quot;, &quot;+&quot;);
+<span class="fc" id="L81">            String userid = request.getParameter(&quot;userid&quot;);</span>
+            //String fileName = URLDecoder.decode(request.getParameter(&quot;filename&quot;), &quot;utf-8&quot;);
+
+            // download할 파일 읽기
+
+            // LJM 090430 : 수정해야 할 부분 - start ------------------
+            // 리눅스 서버 사용시
+            //String downloadDir = &quot;/var/spool/webmail/download/&quot;;
+
+            // 윈도우즈 환경 사용시
+<span class="fc" id="L91">            String downloadDir = &quot;C:/temp/download/&quot;;</span>
+            // LJM 090430 : 수정해야 할 부분 - end   ------------------
+
+//            response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; +
+//                    MimeUtility.encodeText(fileName) + &quot;;&quot;);
+
+//            response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; +
+//                    MimeUtility.encodeText(fileName, &quot;UTF-8&quot;, &quot;B&quot;) + &quot;;&quot;);
+
+<span class="fc" id="L100">            response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot;</span>
+<span class="fc" id="L101">                    + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + &quot;;&quot;);</span>
+
+<span class="fc" id="L103">            File f = new File(downloadDir + userid + &quot;/&quot; + fileName);</span>
+<span class="fc" id="L104">            byte[] b = new byte[(int) f.length()];</span>
+            // try-with-resource 문은 fis를 명시적으로 close해 주지 않아도 됨.
+<span class="fc" id="L106">            try (FileInputStream fis = new FileInputStream(f)) {</span>
+<span class="fc" id="L107">                fis.read(b);</span>
+            }
+            ;
+
+            // 다운로드
+<span class="fc" id="L112">            sos = response.getOutputStream();</span>
+<span class="fc" id="L113">            sos.write(b);</span>
+<span class="fc" id="L114">            sos.flush();</span>
+<span class="fc" id="L115">            sos.close();</span>
+<span class="nc" id="L116">        } catch (Exception ex) {</span>
+<span class="nc" id="L117">            logger.error(&quot;====== DOWNLOAD exception : {}&quot;, ex.getMessage());</span>
+<span class="fc" id="L118">        }</span>
+        // 다운로드후 파일 삭제
+        //f.delete();
+
+<span class="fc" id="L122">    }</span>
+
+    private boolean deleteMessage(HttpServletRequest request) {
+<span class="nc" id="L125">        int msgid = Integer.parseInt(request.getParameter(&quot;msgid&quot;));</span>
+
+<span class="nc" id="L127">        HttpSession httpSession = request.getSession();</span>
+<span class="nc" id="L128">        String host = (String) httpSession.getAttribute(&quot;host&quot;);</span>
+<span class="nc" id="L129">        String userid = (String) httpSession.getAttribute(&quot;userid&quot;);</span>
+<span class="nc" id="L130">        String password = (String) httpSession.getAttribute(&quot;password&quot;);</span>
+
+<span class="nc" id="L132">        Pop3Agent pop3 = new Pop3Agent(host, userid, password);</span>
+<span class="nc" id="L133">        return pop3.deleteMessage(msgid, true);</span>
+    }
+
+    // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;HttpServlet methods. Click on the + sign on the left to edit the code.&quot;&gt;
+
+    /**
+     * Handles the HTTP &lt;code&gt;GET&lt;/code&gt; method.
+     *
+     * @param request  servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException      if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+<span class="fc" id="L149">        processRequest(request, response);</span>
+<span class="fc" id="L150">    }</span>
+
+    /**
+     * Handles the HTTP &lt;code&gt;POST&lt;/code&gt; method.
+     *
+     * @param request  servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException      if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+<span class="nc" id="L163">        processRequest(request, response);</span>
+<span class="nc" id="L164">    }</span>
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+<span class="nc" id="L173">        return &quot;Short description&quot;;</span>
+    }// &lt;/editor-fold&gt;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

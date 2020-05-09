@@ -5,10 +5,10 @@
 package cse.maven_webmail.model;
 
 import cse.maven_webmail.control.CommandType;
+
 import javax.mail.Message;
 
 /**
- *
  * @author jongmin
  */
 public class MessageFormatter {
@@ -37,18 +37,15 @@ public class MessageFormatter {
             parser.parse(false);  // envelope 정보만 필요
             // 메시지 헤더 포맷
             // 추출한 정보를 출력 포맷 사용하여 스트링으로 만들기
-            buffer.append("<tr> "
-                    + " <td id=no>" + (i + 1) + " </td> "
-                    + " <td id=sender>" + parser.getFromAddress() + "</td>"
-                    + " <td id=subject> "
-                    + " <a href=show_message.jsp?msgid=" + (i + 1) + " title=\"메일 보기\"> "
-                    + parser.getSubject() + "</a> </td>"
-                    + " <td id=date>" + parser.getSentDate() + "</td>"
-                    + " <td id=delete>"
-                    + "<a href=ReadMail.do?menu="
-                    + CommandType.DELETE_MAIL_COMMAND
-                    + "&msgid=" + (i + 1) + "> 삭제 </a>" + "</td>"
-                    + " </tr>");
+            buffer.append("<tr> " + " <td id=no>").append(i + 1).append(" </td> ")
+                    .append(" <td id=sender>").append(parser.getFromAddress())
+                    .append("</td>").append(" <td id=subject> ")
+                    .append(" <a href=show_message.jsp?msgid=").append(i + 1)
+                    .append(" title=\"메일 보기\"> ").append(parser.getSubject())
+                    .append("</a> </td>").append(" <td id=date>").append(parser.getSentDate())
+                    .append("</td>").append(" <td id=delete>").append("<a href=ReadMail.do?menu=")
+                    .append(CommandType.DELETE_MAIL_COMMAND).append("&msgid=").append(i + 1)
+                    .append("> 삭제 </a>").append("</td>").append(" </tr>");
         }
         buffer.append("</table>");
 
@@ -62,21 +59,19 @@ public class MessageFormatter {
         MessageParser parser = new MessageParser(message, userid);
         parser.parse(true);
 
-        buffer.append("보낸 사람: " + parser.getFromAddress() + " <br>");
-        buffer.append("받은 사람: " + parser.getToAddress() + " <br>");
-        buffer.append("Cc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : " + parser.getCcAddress() + " <br>");
-        buffer.append("보낸 날짜: " + parser.getSentDate() + " <br>");
-        buffer.append("제 &nbsp;&nbsp;&nbsp;  목: " + parser.getSubject() + " <br> <hr>");
+        buffer.append("보낸 사람: ").append(parser.getFromAddress()).append(" <br>");
+        buffer.append("받은 사람: ").append(parser.getToAddress()).append(" <br>");
+        buffer.append("Cc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ").append(parser.getCcAddress()).append(" <br>");
+        buffer.append("보낸 날짜: ").append(parser.getSentDate()).append(" <br>");
+        buffer.append("제 &nbsp;&nbsp;&nbsp;  목: ").append(parser.getSubject()).append(" <br> <hr>");
 
         buffer.append(parser.getBody());
 
         String attachedFile = parser.getFileName();
         if (attachedFile != null) {
-            buffer.append("<br> <hr> 첨부파일: <a href=ReadMail.do?menu="
-                    + CommandType.DOWNLOAD_COMMAND
-                    + "&userid=" + this.userid
-                    + "&filename=" + attachedFile.replaceAll(" ", "%20")
-                    + " target=_top> " + attachedFile + "</a> <br>");
+            buffer.append("<br> <hr> 첨부파일: <a href=ReadMail.do?menu=" + CommandType.DOWNLOAD_COMMAND + "&userid=")
+                    .append(this.userid).append("&filename=").append(attachedFile.replaceAll(" ", "%20"))
+                    .append(" target=_top> ").append(attachedFile).append("</a> <br>");
         }
 
         return buffer.toString();

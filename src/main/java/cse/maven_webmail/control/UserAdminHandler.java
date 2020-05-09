@@ -4,34 +4,65 @@
  */
 package cse.maven_webmail.control;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import cse.maven_webmail.model.UserAdminAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author jongmin
  */
 public class UserAdminHandler extends HttpServlet {
+    private String host;
+    private int port;
+    private String path;
+    private static final Logger logger = LoggerFactory.getLogger(UserAdminHandler.class);
+
+    /**
+     * james_server.properties를 읽어서 host ip와 port를 initialize 하도록 하였음 - 남영우
+     */
+    @Override
+    public void init() {
+        Properties props = new Properties();
+        path = getServletContext().getRealPath(".");
+        String propertyFile = path + "/WEB-INF/classes/config/james_server.properties";
+        propertyFile = propertyFile.replace("\\", "/");
+        logger.info("prop path = {}", propertyFile);
+        try (BufferedInputStream bis =
+                     new BufferedInputStream(
+                             new FileInputStream(propertyFile))) {
+            props.load(bis);
+            host = props.getProperty("host");
+            port = Integer.parseInt(props.getProperty("port"));
+            logger.trace("host = {}\nport = {}\n", host, port);
+        } catch (IOException ioe) {
+            logger.error("UserAdminHandler: 초기화 실패 - {}", ioe.getMessage());
+        }
+    }
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-//        PrintWriter out = response.getWriter();
         try (PrintWriter out = response.getWriter()) {
 //        RequestDispatcher view = request.getRequestDispatcher("main_menu.jsp");
             // Validate if userid == "admin"
@@ -40,11 +71,10 @@ public class UserAdminHandler extends HttpServlet {
             if (userid == null || !userid.equals("admin")) {
                 out.println("현재 사용자(" + userid + ")의 권한으로 수행 불가합니다.");
                 out.println("<a href=/WebMailSystem/> 초기 화면으로 이동 </a>");
-                return;
             } else {
 
-                request.setCharacterEncoding("UTF-8");
-                int select = Integer.parseInt((String) request.getParameter("menu"));
+                request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                int select = Integer.parseInt(request.getParameter("menu"));
 
                 switch (select) {
                     case CommandType.ADD_USER_COMMAND:
@@ -52,7 +82,7 @@ public class UserAdminHandler extends HttpServlet {
                         break;
 
                     case CommandType.DELETE_USER_COMMAND:
-                        deleteUser(request, response, out);
+                        deleteUser(request, response);
                         break;
 
                     default:
@@ -61,21 +91,19 @@ public class UserAdminHandler extends HttpServlet {
                 }
             }
         } catch (Exception ex) {
-            System.err.println(ex.toString());
+            logger.error("{}", ex.getMessage());
         }
     }
 
     private void addUser(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
-        String server = "127.0.0.1";
-        int port = 4555;
         try {
-            UserAdminAgent agent = new UserAdminAgent(server, port, this.getServletContext().getRealPath("."));
+            UserAdminAgent agent = new UserAdminAgent(host, port, path);
             String userid = request.getParameter("id");  // for test
             String password = request.getParameter("password");// for test
             out.println("userid = " + userid + "<br>");
             out.println("password = " + password + "<br>");
             out.flush();
-            // if (addUser successful)  사용자 등록 성공 팦업창
+            // if (addUser successful)  사용자 등록 성공 팝업창
             // else 사용자 등록 실패 팝업창
             if (agent.addUser(userid, password)) {
                 out.println(getUserRegistrationSuccessPopUp());
@@ -130,16 +158,15 @@ public class UserAdminHandler extends HttpServlet {
         return successPopUp.toString();
     }
 
-    private void deleteUser(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
-        String server = "127.0.0.1";
-        int port = 4555;
+    private void deleteUser(HttpServletRequest request, HttpServletResponse response) {
+
         try {
-            UserAdminAgent agent = new UserAdminAgent(server, port, this.getServletContext().getRealPath("."));
+            UserAdminAgent agent = new UserAdminAgent(host, port, path);
             String[] deleteUserList = request.getParameterValues("selectedUsers");
             agent.deleteUsers(deleteUserList);
             response.sendRedirect("admin_menu.jsp");
         } catch (Exception ex) {
-            System.out.println(" UserAdminHandler.deleteUser : exception = " + ex);
+            logger.error("UserAdminHandler.deleteUser : exception = {}", ex.getMessage());
         }
     }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -147,10 +174,10 @@ public class UserAdminHandler extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -161,10 +188,10 @@ public class UserAdminHandler extends HttpServlet {
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

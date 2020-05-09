@@ -4,85 +4,80 @@
  */
 package cse.maven_webmail.control;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import cse.maven_webmail.model.Pop3Agent;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import cse.maven_webmail.model.Pop3Agent;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
- *
  * @author jongmin
  */
 public class LoginHandler extends HttpServlet {
 
-    /** 
+    private static final String ADMINISTRATOR = "admin";
+
+    /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
-    private final String ADMINISTRATOR = "admin";
-
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
         HttpSession session = request.getSession();
         response.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        int selected_menu = Integer.parseInt((String) request.getParameter("menu"));
+
+        int selectedMenu = Integer.parseInt(request.getParameter("menu"));
 
 
-        try {
-            switch (selected_menu) {
-                case CommandType.LOGIN:
-                    String host = (String) request.getSession().getAttribute("host");
-                    String userid = request.getParameter("userid");
-                    String password = request.getParameter("passwd");
+        switch (selectedMenu) {
+            case CommandType.LOGIN:
+                String host = (String) request.getSession().getAttribute("host");
+                String userid = request.getParameter("userid");
+                String password = request.getParameter("passwd");
 
-                    // Check the login information is valid using <<model>>Pop3Agent.
-                    Pop3Agent pop3Agent = new Pop3Agent(host, userid, password);
-                    boolean isLoginSuccess = pop3Agent.validate();
+                // Check the login information is valid using <<model>>Pop3Agent.
+                Pop3Agent pop3Agent = new Pop3Agent(host, userid, password);
+                boolean isLoginSuccess = pop3Agent.validate();
 //                    boolean isLoginSuccess = false;
 
-                    // Now call the correct page according to its validation result.
-                    if (isLoginSuccess) {
-                        if (isAdmin(userid)) {
-                            // HttpSession 객체에 userid를 등록해 둔다.
-                            session.setAttribute("userid", userid);
-                            response.sendRedirect("admin_menu.jsp");
-                        } else {
-                            // HttpSession 객체에 userid와 password를 등록해 둔다.
-                            session.setAttribute("userid", userid);
-                            session.setAttribute("password", password);
-                            response.sendRedirect("main_menu.jsp");
-                        }
+                // Now call the correct page according to its validation result.
+                if (isLoginSuccess) {
+                    session.setAttribute("userid", userid);
+                    if (isAdmin(userid)) {
+                        // HttpSession 객체에 userid를 등록해 둔다.
+                        response.sendRedirect("admin_menu.jsp");
                     } else {
-                        RequestDispatcher view = request.getRequestDispatcher("login_fail.jsp");
-                        view.forward(request, response);
-//                        response.sendRedirect("login_fail.jsp");
+                        // HttpSession 객체에 userid와 password를 등록해 둔다.
+                        session.setAttribute("password", password);
+                        response.sendRedirect("main_menu.jsp");
                     }
-                    break;
-                case CommandType.LOGOUT:
-                    out = response.getWriter();
-                    session.invalidate();
+                } else {
+                    RequestDispatcher view = request.getRequestDispatcher("login_fail.jsp");
+                    view.forward(request, response);
+//                        response.sendRedirect("login_fail.jsp");
+                }
+                break;
+            case CommandType.LOGOUT:
+                session.invalidate();
 //                    response.sendRedirect(homeDirectory);
-                    response.sendRedirect(getServletContext().getInitParameter("HomeDirectory"));
-                    break;
-                default:
-                    break;
-            }
-        } catch (Exception ex) {
-            System.err.println("LoginCheck - LOGIN error : " + ex);
-        } finally {
-            out.close();
+                response.sendRedirect(getServletContext().getInitParameter("HomeDirectory"));
+                break;
+            default:
+                break;
         }
+
+
     }
 
     protected boolean isAdmin(String userid) {
@@ -98,10 +93,11 @@ public class LoginHandler extends HttpServlet {
 
     /**
      * Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -114,10 +110,11 @@ public class LoginHandler extends HttpServlet {
 
     /**
      * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
+     *
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -130,6 +127,7 @@ public class LoginHandler extends HttpServlet {
 
     /**
      * Returns a short description of the servlet.
+     *
      * @return a String containing servlet description
      */
     @Override

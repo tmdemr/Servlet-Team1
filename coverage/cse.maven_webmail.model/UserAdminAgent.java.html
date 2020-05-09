@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ko"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserAdminAgent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Servlet_Team1$index_jsp__1_.exec</a> &gt; <a href="index.source.html" class="el_package">cse.maven_webmail.model</a> &gt; <span class="el_source">UserAdminAgent.java</span></div><h1>UserAdminAgent.java</h1><pre class="source lang-java linenums">/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cse.maven_webmail.model;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+
+/**
+ * @author jongmin
+ */
+public class UserAdminAgent {
+<span class="fc" id="L26">    private static final Logger logger = LoggerFactory.getLogger(UserAdminAgent.class); // 로거</span>
+    private final Socket socket;
+    private final InputStream is;
+    private final OutputStream os;
+<span class="fc" id="L30">    private boolean isConnected = false;</span>
+    private String ROOT_ID;  //  = &quot;root&quot;;
+    private String ROOT_PASSWORD;  // = &quot;root&quot;;
+    private String ADMIN_ID; //  = &quot;admin&quot;;
+    private static final String EOL = &quot;\r\n&quot;;
+    private final String cwd;
+
+<span class="fc" id="L37">    public UserAdminAgent(String server, int port, String cwd) throws Exception {</span>
+<span class="fc" id="L38">        logger.info(&quot;UserAdminAgent created: server = &quot; + server + &quot;, port = &quot; + port);</span>
+<span class="fc" id="L39">        this.cwd = cwd;</span>
+
+<span class="fc" id="L41">        initialize();</span>
+
+<span class="fc" id="L43">        socket = new Socket(server, port);</span>
+<span class="fc" id="L44">        is = socket.getInputStream();</span>
+<span class="fc" id="L45">        os = socket.getOutputStream();</span>
+
+<span class="fc" id="L47">        isConnected = connect();</span>
+<span class="fc" id="L48">    }</span>
+
+    private void initialize() {
+<span class="fc" id="L51">        Properties props = new Properties();</span>
+<span class="fc" id="L52">        String propertyFile = this.cwd + &quot;/WEB-INF/classes/config/system.properties&quot;;</span>
+<span class="fc" id="L53">        propertyFile = propertyFile.replace(&quot;\\&quot;, &quot;/&quot;);</span>
+<span class="fc" id="L54">        logger.info(&quot;prop path = {}&quot;, propertyFile);</span>
+<span class="fc" id="L55">        try (BufferedInputStream bis =</span>
+                     new BufferedInputStream(
+                             new FileInputStream(propertyFile))) {
+<span class="fc" id="L58">            props.load(bis);</span>
+<span class="fc" id="L59">            ROOT_ID = props.getProperty(&quot;root_id&quot;);</span>
+<span class="fc" id="L60">            ROOT_PASSWORD = props.getProperty(&quot;root_password&quot;);</span>
+<span class="fc" id="L61">            ADMIN_ID = props.getProperty(&quot;admin_id&quot;);</span>
+<span class="fc" id="L62">            logger.info(&quot;ROOT_ID = {}\nROOT_PASS = {}\n&quot;, ROOT_ID, ROOT_PASSWORD);</span>
+<span class="nc" id="L63">        } catch (IOException ioe) {</span>
+<span class="nc" id="L64">            logger.error(&quot;UserAdminAgent: 초기화 실패 - {}&quot;, ioe.getMessage());</span>
+<span class="fc" id="L65">        }</span>
+
+<span class="fc" id="L67">    }</span>
+
+    // return value:
+    //   - true: addUser operation successful
+    //   - false: addUser operation failed
+    public boolean addUser(String userId, String password) {
+<span class="nc" id="L73">        boolean status = false;</span>
+<span class="nc" id="L74">        byte[] messageBuffer = new byte[1024];</span>
+
+<span class="nc" id="L76">        logger.info(&quot;addUser() called&quot;);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (!isConnected) {</span>
+<span class="nc" id="L78">            return status;</span>
+        }
+
+        try {
+            // 1: &quot;adduser&quot; command
+<span class="nc" id="L83">            String addUserCommand = &quot;adduser &quot; + userId + &quot; &quot; + password + EOL;</span>
+<span class="nc" id="L84">            os.write(addUserCommand.getBytes());</span>
+
+            // 2: response for &quot;adduser&quot; command
+<span class="nc" id="L87">            java.util.Arrays.fill(messageBuffer, (byte) 0);</span>
+            //if (is.available() &gt; 0) {
+<span class="nc" id="L89">            is.read(messageBuffer);</span>
+<span class="nc" id="L90">            String recvMessage = new String(messageBuffer);</span>
+<span class="nc" id="L91">            logger.trace(recvMessage);</span>
+            //}
+            // 3: 기존 메일사용자 여부 확인
+<span class="nc" id="L94">            status = recvMessage.contains(&quot;added&quot;);</span>
+            // 4: 연결 종료
+<span class="nc" id="L96">            quit();</span>
+<span class="nc" id="L97">            socket.close();</span>
+<span class="nc" id="L98">        } catch (Exception ex) {</span>
+<span class="nc" id="L99">            logger.error(&quot;addUser failed : {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L100">            status = false;</span>
+<span class="nc" id="L101">        }</span>
+<span class="nc" id="L102">        return status; // 상태 반환</span>
+    }  // addUser()
+
+    public List&lt;String&gt; getUserList() {
+<span class="fc" id="L106">        List&lt;String&gt; userList = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L107">        byte[] messageBuffer = new byte[1024];</span>
+
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (!isConnected) {</span>
+<span class="nc" id="L110">            return userList;</span>
+        }
+
+        try {
+            // 1: &quot;listusers&quot; 명령 송신
+<span class="fc" id="L115">            String command = &quot;listusers &quot; + EOL;</span>
+<span class="fc" id="L116">            os.write(command.getBytes());</span>
+
+            // 2: &quot;listusers&quot; 명령에 대한 응답 수신
+<span class="fc" id="L119">            Arrays.fill(messageBuffer, (byte) 0);</span>
+<span class="fc" id="L120">            is.read(messageBuffer);</span>
+
+            // 3: 응답 메시지 처리
+<span class="fc" id="L123">            String recvMessage = new String(messageBuffer);</span>
+<span class="fc" id="L124">            logger.trace(recvMessage);</span>
+<span class="fc" id="L125">            userList = parseUserList(recvMessage);</span>
+
+<span class="fc" id="L127">            quit();</span>
+<span class="nc" id="L128">        } catch (Exception ex) {</span>
+<span class="nc" id="L129">            logger.error(&quot;getUserList error : {}&quot;, ex.getMessage());</span>
+<span class="fc" id="L130">        }</span>
+<span class="fc" id="L131">        return userList;</span>
+
+    }  // getUserList()
+
+    private List&lt;String&gt; parseUserList(String message) {
+<span class="fc" id="L136">        List&lt;String&gt; userList = new LinkedList&lt;&gt;();</span>
+
+        // 1: 줄 단위로 나누기
+<span class="fc" id="L139">        String[] lines = message.split(EOL);</span>
+        // 2: 첫 번째 줄에는 등록된 사용자 수에 대한 정보가 있음.
+        //    예) Existing accounts 7
+<span class="fc" id="L142">        String[] firstLine = lines[0].split(&quot; &quot;);</span>
+<span class="fc" id="L143">        int numberOfUsers = Integer.parseInt(firstLine[2]);</span>
+
+        // 3: 두 번째 줄부터는 각 사용자 ID 정보를 보여줌.
+        //    예) user: admin
+<span class="fc bfc" id="L147" title="All 2 branches covered.">        for (int i = 1; i &lt;= numberOfUsers; i++) {</span>
+            // 3.1: 한 줄을 구분자 &quot; &quot;로 나눔.
+<span class="fc" id="L149">            String[] userLine = lines[i].split(&quot; &quot;);</span>
+            // 3.2 사용자 ID가 관리자 ID와 일치하는 지 여부 확인
+<span class="fc bfc" id="L151" title="All 2 branches covered.">            if (!userLine[1].equals(ADMIN_ID)) {</span>
+<span class="fc" id="L152">                userList.add(userLine[1]);</span>
+            }
+        }
+<span class="fc" id="L155">        return userList;</span>
+    } // parseUserList()
+
+    public boolean deleteUsers(String[] userList) {
+<span class="nc" id="L159">        byte[] messageBuffer = new byte[1024];</span>
+        String command;
+        String recvMessage;
+<span class="nc" id="L162">        boolean status = false;</span>
+
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (!isConnected) {</span>
+<span class="nc" id="L165">            return false;</span>
+        }
+
+        try {
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            for (String userId : userList) {</span>
+                // 1: &quot;deluser&quot; 명령 송신
+<span class="nc" id="L171">                command = &quot;deluser &quot; + userId + EOL;</span>
+<span class="nc" id="L172">                os.write(command.getBytes());</span>
+<span class="nc" id="L173">                logger.trace(command);</span>
+
+                // 2: 응답 메시지 수신
+<span class="nc" id="L176">                java.util.Arrays.fill(messageBuffer, (byte) 0);</span>
+<span class="nc" id="L177">                is.read(messageBuffer);</span>
+
+                // 3: 응답 메시지 분석
+<span class="nc" id="L180">                recvMessage = new String(messageBuffer);</span>
+<span class="nc" id="L181">                logger.trace(recvMessage);</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                if (recvMessage.contains(&quot;deleted&quot;)) {</span>
+<span class="nc" id="L183">                    status = true;</span>
+                }
+            }
+<span class="nc" id="L186">            quit();</span>
+<span class="nc" id="L187">        } catch (Exception ex) {</span>
+<span class="nc" id="L188">            logger.error(&quot;delete users error : {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L189">        }</span>
+<span class="nc" id="L190">        return status;</span>
+
+    }  // deleteUsers()
+
+    public boolean verify(String userid) {
+<span class="nc" id="L195">        boolean status = false;</span>
+<span class="nc" id="L196">        byte[] messageBuffer = new byte[1024];</span>
+
+        try {
+            // --&gt; verify userid
+<span class="nc" id="L200">            String verifyCommand = &quot;verify &quot; + userid;</span>
+<span class="nc" id="L201">            os.write(verifyCommand.getBytes());</span>
+
+            // read the result for verify command
+            // &lt;-- User userid exists   or
+            // &lt;-- User userid does not exist
+<span class="nc" id="L206">            is.read(messageBuffer);</span>
+<span class="nc" id="L207">            String recvMessage = new String(messageBuffer);</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">            if (recvMessage.contains(&quot;exists&quot;)) {</span>
+<span class="nc" id="L209">                status = true;</span>
+            }
+
+<span class="nc" id="L212">            quit();  // quit command</span>
+<span class="nc" id="L213">        } catch (IOException ex) {</span>
+<span class="nc" id="L214">            logger.error(&quot;verify error : {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L215">        }</span>
+<span class="nc" id="L216">        return status;</span>
+
+    }
+
+    private boolean connect() throws Exception {
+<span class="fc" id="L221">        byte[] messageBuffer = new byte[1024];</span>
+        boolean returnVal;
+        String sendMessage;
+<span class="fc" id="L224">        logger.info(&quot;UserAdminAgent.connect() called...&quot;);</span>
+
+
+        // root 인증: id, passwd - default: root
+        // 1: Login Id message 수신
+<span class="fc" id="L229">        is.read(messageBuffer);</span>
+<span class="fc" id="L230">        String recvMessage = new String(messageBuffer);</span>
+<span class="fc" id="L231">        logger.trace(recvMessage);</span>
+        // 2: rootId 송신
+<span class="fc" id="L233">        sendMessage = ROOT_ID + EOL;</span>
+<span class="fc" id="L234">        os.write(sendMessage.getBytes());</span>
+
+        // 3: Password message 수신
+<span class="fc" id="L237">        java.util.Arrays.fill(messageBuffer, (byte) 0);</span>
+<span class="fc" id="L238">        is.read(messageBuffer);</span>
+<span class="fc" id="L239">        recvMessage = new String(messageBuffer);</span>
+<span class="fc" id="L240">        logger.trace(recvMessage);</span>
+        // 4: rootPassword 송신
+<span class="fc" id="L242">        sendMessage = ROOT_PASSWORD + EOL;</span>
+<span class="fc" id="L243">        os.write(sendMessage.getBytes());</span>
+
+        // 5: welcome message 수신
+<span class="fc" id="L246">        java.util.Arrays.fill(messageBuffer, (byte) 0);</span>
+        // if (is.available() &gt; 0) {
+<span class="fc" id="L248">        is.read(messageBuffer);</span>
+<span class="fc" id="L249">        recvMessage = new String(messageBuffer);</span>
+<span class="fc" id="L250">        logger.trace(recvMessage);</span>
+<span class="fc" id="L251">        returnVal = recvMessage.contains(&quot;Welcome&quot;);</span>
+<span class="fc" id="L252">        return returnVal;</span>
+    }  // connect()
+
+    public boolean quit() {
+<span class="fc" id="L256">        byte[] messageBuffer = new byte[1024];</span>
+<span class="fc" id="L257">        boolean status = false;</span>
+        // quit
+        try {
+            // 1: quit 명령 송신
+<span class="fc" id="L261">            String quitCommand = &quot;quit&quot; + EOL;</span>
+<span class="fc" id="L262">            os.write(quitCommand.getBytes());</span>
+            // 2: quit 명령에 대한 응답 수신
+<span class="fc" id="L264">            java.util.Arrays.fill(messageBuffer, (byte) 0);</span>
+            //if (is.available() &gt; 0) {
+<span class="fc" id="L266">            is.read(messageBuffer);</span>
+            // 3: 메시지 분석
+<span class="fc" id="L268">            String recvMessage = new String(messageBuffer);</span>
+<span class="fc" id="L269">            logger.info(recvMessage);</span>
+<span class="fc" id="L270">            status = recvMessage.contains(&quot;closed&quot;);</span>
+<span class="nc" id="L271">        } catch (IOException ex) {</span>
+<span class="nc" id="L272">            logger.error(&quot;UserAdminAgent.quit() error : {}&quot;, ex.getMessage());</span>
+<span class="fc" id="L273">        }</span>
+<span class="fc" id="L274">        return status;</span>
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
