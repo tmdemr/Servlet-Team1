@@ -15,6 +15,7 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.internet.MimeMessage;
 
 /**
  * @author jongmin
@@ -24,7 +25,7 @@ public class Pop3Agent {
     private String host;
     private String userid;
     private String password;
-
+    private Session session;
     private Store store;
 
     private String exceptionType;
@@ -54,6 +55,7 @@ public class Pop3Agent {
 
     public boolean deleteMessage(int msgid, boolean really_delete) {
         boolean status = false;
+        logger.info("deleteMessage 값 : {}",msgid);
 
         if (!connectToStore()) {
             return false;
@@ -64,9 +66,12 @@ public class Pop3Agent {
 //            Folder folder = store.getDefaultFolder();
             Folder folder = store.getFolder("INBOX");
             folder.open(Folder.READ_WRITE);
-
             // Message에 DELETED flag 설정
             Message msg = folder.getMessage(msgid);
+
+            logger.info("message id : {}",msg.getHeader("Message-ID"));
+            logger.info("message number : {}",msg.getMessageNumber());
+            logger.info("{}",msg.getSubject());
             msg.setFlag(Flags.Flag.DELETED, really_delete);
 
             // 폴더에서 메시지 삭제
@@ -155,7 +160,7 @@ public class Pop3Agent {
         props.setProperty("mail.pop3.disablecapa", "true");  // 200102 LJM - added cf. https://javaee.github.io/javamail/docs/api/com/sun/mail/pop3/package-summary.html
         props.setProperty("mail.debug", "true");
 
-        Session session = Session.getInstance(props);
+        session = Session.getInstance(props);
         session.setDebug(true);
 
         try {

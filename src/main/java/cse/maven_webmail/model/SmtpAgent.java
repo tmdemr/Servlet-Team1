@@ -35,7 +35,6 @@ public class SmtpAgent {
     protected String subj = null;
     protected String body = null;
     protected String file1 = null;
-
     public SmtpAgent(String host, String userid) {
         this.host = host;
         this.userid = userid;
@@ -92,6 +91,7 @@ public class SmtpAgent {
     public String getFile1() {
         return file1;
     }
+
 
     public void setFile1(String file1) {
         this.file1 = file1;
@@ -172,10 +172,10 @@ public class SmtpAgent {
                 mp.addBodyPart(a1);
             }
             msg.setContent(mp);
-
             // 메일 전송
             Transport.send(msg);
-
+            DatabaseAgent databaseAgent = new DatabaseAgent();
+            databaseAgent.sendMessageToDB(this);
             // 메일 전송 완료되었으므로 서버에 저장된
             // 첨부 파일 삭제함
             if (this.file1 != null) {

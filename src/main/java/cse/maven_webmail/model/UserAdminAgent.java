@@ -14,10 +14,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jongmin
@@ -133,17 +131,24 @@ public class UserAdminAgent {
     }  // getUserList()
 
     private List<String> parseUserList(String message) {
-        List<String> userList = new LinkedList<>();
-
         // 1: 줄 단위로 나누기
         String[] lines = message.split(EOL);
         // 2: 첫 번째 줄에는 등록된 사용자 수에 대한 정보가 있음.
         //    예) Existing accounts 7
         String[] firstLine = lines[0].split(" ");
         int numberOfUsers = Integer.parseInt(firstLine[2]);
+        String[] accountLines = new String[numberOfUsers];
+        System.arraycopy(lines, 1, accountLines, 0, numberOfUsers);
+        return Arrays.stream(accountLines).map(line -> { // java 8의 스트림으로 변경해보았음.
+            if (line.split(" ")[1].equals(ADMIN_ID))
+                return null;
+            else
+                return line.split(" ")[1];
+        }).filter(Objects::nonNull).collect(Collectors.toList());
 
         // 3: 두 번째 줄부터는 각 사용자 ID 정보를 보여줌.
         //    예) user: admin
+        /*
         for (int i = 1; i <= numberOfUsers; i++) {
             // 3.1: 한 줄을 구분자 " "로 나눔.
             String[] userLine = lines[i].split(" ");
@@ -152,7 +157,9 @@ public class UserAdminAgent {
                 userList.add(userLine[1]);
             }
         }
-        return userList;
+
+         */
+        //return userList;
     } // parseUserList()
 
     public boolean deleteUsers(String[] userList) {

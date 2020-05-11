@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/maven_webmail"/>
+<Context path="/maven_webmail">
+    <Resource name="jdbc/JamesWebmail" auth="Container"
+              type="javax.sql.DataSource"
+              maxTotal="8" maxIdle="2" maxWaitMillis="5000"
+              username="james_webmail" password="123456"
+              driverClassName="com.mysql.cj.jdbc.Driver"
+              url="jdbc:mysql://127.0.0.1:3306/jamesdb?serverTimezone=Asia/Seoul"/>
+</Context>
