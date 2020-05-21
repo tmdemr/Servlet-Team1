@@ -1,16 +1,17 @@
-<%-- 
-    Document   : show_message.jsp
-    Author     : jongmin
+<%--
+  Created by IntelliJ IDEA.
+  User: Java
+  Date: 2020-05-21
+  Time: 오후 7:35
+  To change this template use File | Settings | File Templates.
 --%>
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 
-<jsp:useBean id="pop3" scope="page" class="cse.maven_webmail.model.Pop3Agent"/>
+<jsp:useBean id="sendMessageHandler" scope="page" class="cse.maven_webmail.model.DatabaseAgent"/>
 <%
-    pop3.setHost((String) session.getAttribute("host"));
-    pop3.setUserid((String) session.getAttribute("userid"));
-    pop3.setPassword((String) session.getAttribute("password"));
+    sendMessageHandler.setUserId((String) session.getAttribute("userid"));
+    sendMessageHandler.setMessageId(request.getParameter("messageId"));
 %>
 
 <!DOCTYPE>
@@ -28,7 +29,7 @@
 </div>
 
 <div id="msgBody">
-    <%= pop3.getMessage(Integer.parseInt(request.getParameter("msgid")))%>
+    <%= sendMessageHandler.getMessage()%>
 </div>
 
 

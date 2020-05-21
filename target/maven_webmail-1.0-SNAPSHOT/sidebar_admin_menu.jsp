@@ -1,9 +1,10 @@
 <%-- 
-    Document   : sidebar_menu.jsp
+    Document   : sidebar_admin_menu.jsp
     Author     : jongmin
 --%>
 
 <%@page import="cse.maven_webmail.control.CommandType" %>
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE>
 <html lang="kr">
@@ -15,10 +16,12 @@
 <br> <br>
 
 <span style="color: indigo"> <strong>사용자: <%= session.getAttribute("userid") %> </strong> </span> <br>
-
-<p><a href="main_menu.jsp"> 메일 읽기 </a></p>
-<p><a href="write_mail.jsp"> 메일 쓰기 </a></p>
-<p><a href="sended_message_menu.jsp">보낸메일함</a></p>
+<%--
+<p><a href="UserAdmin.do?select=<%= CommandType.ADD_USER_MENU %>">사용자 추가</a></p>
+<p><a href="UserAdmin.do?select=<%= CommandType.DELETE_USER_MENU %>">사용자 제거</a></p>
+--%>
+<p><a href="add_user.jsp">사용자 추가</a></p>
+<p><a href="delete_user.jsp"> 사용자 제거</a></p>
 <p><a href="Login.do?menu=<%= CommandType.LOGOUT %>">로그아웃</a></p>
 </body>
 </html>
