@@ -22,6 +22,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
+import javax.naming.NamingException;
 
 /**
  * @author jongmin
@@ -186,7 +187,10 @@ public class SmtpAgent {
                 }
             }
             status = true;
-        } catch (Exception ex) {
+        }catch (NamingException e){
+            logger.error("namingException : "+e.getMessage());
+        }
+        catch (Exception ex) {
             logger.error("sendMessage() error : {}", ex.getMessage());
         }
         return status;

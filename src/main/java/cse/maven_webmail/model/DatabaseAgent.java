@@ -24,42 +24,56 @@ public class DatabaseAgent {
 
     public boolean sendMessageToDB(SmtpAgent smtpAgent, String messageId) throws NamingException {
         String name = "java:/comp/env/jdbc/JamesWebmail";
-        boolean status = false;
         javax.naming.Context context = new javax.naming.InitialContext();
         javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);
+        boolean status = false;
         String subject = smtpAgent.getSubj();
         String userId = smtpAgent.getUserid();
         String toUser = smtpAgent.getTo();
         String cc = smtpAgent.getCc();
         String body = smtpAgent.getBody();
-        String file = smtpAgent.getFile1();
+        String fileString = smtpAgent.getFile1();
         int i = 1;
         String query = "INSERT INTO SENDEDMESSAGES( MESSAGE_ID, USERID, TOUSER, CC, SUBJECT, BODY,FILENAME, FILE) VALUES(?, ?, ?, ?, ?,? ,?, ?)";
+        FileInputStream fileInputStream=null;
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query);
+             PreparedStatement preparedStatement = connection.prepareStatement(query)
         ) {
-            FileInputStream fileInputStream = null;
-            if (file != null) {
-                fileInputStream = new FileInputStream(new File(file));
-            }
             preparedStatement.setString(i++, messageId);
             preparedStatement.setString(i++, userId);
             preparedStatement.setString(i++, toUser);
             preparedStatement.setString(i++, cc);
             preparedStatement.setString(i++, subject);
             preparedStatement.setString(i++, body);
-            int index = file.lastIndexOf('/');
-            String fileName = file.substring(index + 1);
-            preparedStatement.setString(i++, fileName);
-            preparedStatement.setBlob(i++, fileInputStream);
+            if (fileString==null||fileString.equals("")) {
+                logger.error("error");
+                preparedStatement.setString(i++, null);
+                preparedStatement.setNull(i++,java.sql.Types.BLOB);
+            } else {
+                int index = fileString.lastIndexOf('/');
+                String fileName = fileString.substring(index + 1);
+                File file = new File(fileString);
+                fileInputStream = new FileInputStream(file);
+                preparedStatement.setString(i++, fileName);
+                preparedStatement.setBlob(i++, fileInputStream);
+            }
             if (preparedStatement.executeUpdate() == 1) {
                 status = true;
             }
-            if (fileInputStream != null) {
-                fileInputStream.close();
-            }
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
+            logger.error("FileNotFoundException");
             logger.error(new Date() + e.getMessage());
+        } catch (SQLException throwables) {
+            logger.error("sqlException");
+            logger.error(new Date() + throwables.getMessage());
+        } finally {
+            if(fileInputStream!=null){
+                try {
+                    fileInputStream.close();
+                } catch (IOException e) {
+                    logger.error(new Date()+" "+e.getMessage());
+                }
+            }
         }
         return status;
     }
@@ -97,6 +111,7 @@ public class DatabaseAgent {
                 stringBuilder.append("<td>").append(resultSet.getDate(4)).append("</td>");
                 stringBuilder.append("<td><a href=\"sendedMail.do?menu=").append(CommandType.DELETE_MAIL_COMMAND).append("&userId=").append(userId)
                         .append("&messageId=").append(resultSet.getString(1)).append("\"").append(">삭제</a></td>");
+                i++;
             }
         } catch (SQLException throwables) {
             logger.error(new Date() + throwables.getMessage());
