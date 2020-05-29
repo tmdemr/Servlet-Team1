@@ -8,7 +8,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 
-<jsp:useBean id="sendMessageHandler" scope="page" class="cse.maven_webmail.model.DatabaseAgent"/>
+<jsp:useBean id="sendMessageHandler" scope="page" class="cse.maven_webmail.model.SendMailDatabaseAgent"/>
 <%
     sendMessageHandler.setUserId((String) session.getAttribute("userid"));
     sendMessageHandler.setMessageId(request.getParameter("messageId"));

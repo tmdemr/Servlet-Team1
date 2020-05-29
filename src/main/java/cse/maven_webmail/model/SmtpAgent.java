@@ -176,8 +176,8 @@ public class SmtpAgent {
             msg.setContent(mp);
             // 메일 전송
             Transport.send(msg);
-            DatabaseAgent databaseAgent = new DatabaseAgent();
-            databaseAgent.sendMessageToDB(this, msg.getMessageID());
+            SendMailDatabaseAgent sendMailDatabaseAgent = new SendMailDatabaseAgent();
+            sendMailDatabaseAgent.sendMessageToDB(this, msg.getMessageID());
             // 메일 전송 완료되었으므로 서버에 저장된
             // 첨부 파일 삭제함
             if (this.file1 != null) {

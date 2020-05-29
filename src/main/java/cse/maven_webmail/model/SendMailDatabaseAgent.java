@@ -11,21 +11,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.Properties;
 
-public class DatabaseAgent {
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseAgent.class);
+public class SendMailDatabaseAgent {
+    private static final Logger logger = LoggerFactory.getLogger(SendMailDatabaseAgent.class);
     private String userId;
     private String messageId;
 
-    public DatabaseAgent() {
+    public SendMailDatabaseAgent() {
 
     }
 
     public boolean sendMessageToDB(SmtpAgent smtpAgent, String messageId) throws NamingException {
-        String name = "java:/comp/env/jdbc/JamesWebmail";
-        javax.naming.Context context = new javax.naming.InitialContext();
-        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);
         boolean status = false;
         String subject = smtpAgent.getSubj();
         String userId = smtpAgent.getUserid();
@@ -35,8 +31,8 @@ public class DatabaseAgent {
         String fileString = smtpAgent.getFile1();
         int i = 1;
         String query = "INSERT INTO SENDEDMESSAGES( MESSAGE_ID, USERID, TOUSER, CC, SUBJECT, BODY,FILENAME, FILE) VALUES(?, ?, ?, ?, ?,? ,?, ?)";
-        FileInputStream fileInputStream=null;
-        try (Connection connection = dataSource.getConnection();
+        FileInputStream fileInputStream = null;
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)
         ) {
             preparedStatement.setString(i++, messageId);
@@ -45,10 +41,9 @@ public class DatabaseAgent {
             preparedStatement.setString(i++, cc);
             preparedStatement.setString(i++, subject);
             preparedStatement.setString(i++, body);
-            if (fileString==null||fileString.equals("")) {
-                logger.error("error");
+            if (fileString == null || fileString.equals("")) {
                 preparedStatement.setString(i++, null);
-                preparedStatement.setNull(i++,java.sql.Types.BLOB);
+                preparedStatement.setNull(i++, java.sql.Types.BLOB);
             } else {
                 int index = fileString.lastIndexOf('/');
                 String fileName = fileString.substring(index + 1);
@@ -67,11 +62,11 @@ public class DatabaseAgent {
             logger.error("sqlException");
             logger.error(new Date() + throwables.getMessage());
         } finally {
-            if(fileInputStream!=null){
+            if (fileInputStream != null) {
                 try {
                     fileInputStream.close();
                 } catch (IOException e) {
-                    logger.error(new Date()+" "+e.getMessage());
+                    logger.error(new Date() + " " + e.getMessage());
                 }
             }
         }
@@ -83,7 +78,6 @@ public class DatabaseAgent {
     }
 
     public String getMySendedMessages() throws NamingException {
-        String name = "java:/comp/env/jdbc/JamesWebmail";
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<table border = 1>");
         stringBuilder.append("<tr> "
@@ -93,10 +87,8 @@ public class DatabaseAgent {
                 + " <th> 보낸 날짜 </td>   "
                 + " <th> 삭제 </td>   "
                 + " </tr>");
-        javax.naming.Context context = new javax.naming.InitialContext();
-        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);
         String query = "SELECT MESSAGE_ID,SUBJECT, TOUSER, SENDED_TIME FROM SENDEDMESSAGES WHERE USERID=?";
-        try (Connection connection = dataSource.getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)
         ) {
             preparedStatement.setString(1, this.userId);
@@ -125,12 +117,9 @@ public class DatabaseAgent {
     }
 
     public String getMessage() throws NamingException {
-        String name = "java:/comp/env/jdbc/JamesWebmail";
         StringBuilder stringBuilder = new StringBuilder();
-        javax.naming.Context context = new javax.naming.InitialContext();
-        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);
         String query = "SELECT TOUSER, CC, SUBJECT, BODY, FILENAME, SENDED_TIME FROM sendedmessages WHERE MESSAGE_ID = ?";
-        try (Connection connection = dataSource.getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
         ) {
             preparedStatement.setString(1, messageId);
@@ -156,12 +145,8 @@ public class DatabaseAgent {
     }
 
     public void download(String directory, String fileName) throws NamingException {
-        String name = "java:/comp/env/jdbc/JamesWebmail";
-        javax.naming.Context context = new javax.naming.InitialContext();
-        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);
         String query = "SELECT FILE FROM sendedmessages WHERE MESSAGE_ID = ? AND USERID = ?";
-
-        try (Connection connection = dataSource.getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
         ) {
             preparedStatement.setString(1, messageId);
@@ -173,24 +158,18 @@ public class DatabaseAgent {
             fileOutputStream.write(inputStream.readAllBytes());
             fileOutputStream.close();
             resultSet.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (SQLException | IOException throwables) {
+            logger.error(new Date() + throwables.getMessage());
         }
     }
 
     public boolean delete() throws NamingException {
         boolean success = false;
-        String name = "java:/comp/env/jdbc/JamesWebmail";
-        javax.naming.Context context = new javax.naming.InitialContext();
-        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);
+
         String query = "DELETE FROM sendedmessages WHERE MESSAGE_ID = ? AND USERID = ?";
         logger.info("messageId : " + messageId);
         logger.info("userId : " + userId);
-        try (Connection connection = dataSource.getConnection();
+        try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)
         ) {
             preparedStatement.setString(1, messageId);
@@ -204,5 +183,12 @@ public class DatabaseAgent {
         }
         logger.info("삭제 : " + success);
         return success;
+    }
+
+    private Connection getConnection() throws NamingException, SQLException {
+        String name = "java:/comp/env/jdbc/JamesWebmail";
+        javax.naming.Context context = new javax.naming.InitialContext();
+        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);
+        return dataSource.getConnection();
     }
 }

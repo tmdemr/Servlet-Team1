@@ -204,7 +204,7 @@ public class UserAdminAgent {
 
         try {
             // --> verify userid
-            String verifyCommand = "verify " + userid;
+            String verifyCommand = "verify " + userid + EOL;
             os.write(verifyCommand.getBytes());
 
             // read the result for verify command
@@ -215,6 +215,7 @@ public class UserAdminAgent {
             if (recvMessage.contains("exists")) {
                 status = true;
             }
+            logger.info(recvMessage);
 
             quit();  // quit command
         } catch (IOException ex) {
@@ -256,6 +257,7 @@ public class UserAdminAgent {
         recvMessage = new String(messageBuffer);
         logger.trace(recvMessage);
         returnVal = recvMessage.contains("Welcome");
+        logger.info("connecntion : " +returnVal );
         return returnVal;
     }  // connect()
 

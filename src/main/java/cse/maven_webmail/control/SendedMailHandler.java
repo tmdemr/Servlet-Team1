@@ -1,17 +1,14 @@
 package cse.maven_webmail.control;
 
-import cse.maven_webmail.model.DatabaseAgent;
-import cse.maven_webmail.model.Pop3Agent;
+import cse.maven_webmail.model.SendMailDatabaseAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -61,11 +58,11 @@ public class SendedMailHandler extends HttpServlet {
             logger.info("userId = " + userId);
             logger.info("messageId = " + messageId);
             logger.info("fileName = " + fileName);
-            DatabaseAgent databaseAgent = new DatabaseAgent();
-            databaseAgent.setMessageId(messageId);
-            databaseAgent.setUserId(userId);
+            SendMailDatabaseAgent sendMailDatabaseAgent = new SendMailDatabaseAgent();
+            sendMailDatabaseAgent.setMessageId(messageId);
+            sendMailDatabaseAgent.setUserId(userId);
             String downloadDir = "C:/temp/download/";
-            databaseAgent.download(downloadDir, fileName);
+            sendMailDatabaseAgent.download(downloadDir, fileName);
             response.setHeader("Content-Disposition", "attachment; filename="
                     + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + ";");
             File f = new File(downloadDir + "/" + fileName);
@@ -87,11 +84,11 @@ public class SendedMailHandler extends HttpServlet {
         boolean success = false;
         String messageId = request.getParameter("messageId");
         String userId = request.getParameter("userId");
-        DatabaseAgent databaseAgent = new DatabaseAgent();
-        databaseAgent.setUserId(userId);
-        databaseAgent.setMessageId(messageId);
+        SendMailDatabaseAgent sendMailDatabaseAgent = new SendMailDatabaseAgent();
+        sendMailDatabaseAgent.setUserId(userId);
+        sendMailDatabaseAgent.setMessageId(messageId);
         try {
-            success = databaseAgent.delete();
+            success = sendMailDatabaseAgent.delete();
         } catch (Exception e) {
             logger.error(new Date() + e.getMessage());
         }
