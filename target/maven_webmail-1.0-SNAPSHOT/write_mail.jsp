@@ -3,12 +3,14 @@
     Author     : jongmin
 --%>
 
+<%@page import="java.nio.charset.StandardCharsets"%>
 <%@page import="cse.maven_webmail.control.CommandType" %>
 
 
 <%-- @taglib  prefix="c" uri="http://java.sun.com/jsp/jstl/core" --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<% request.setCharacterEncoding(StandardCharsets.UTF_8.name());%>
 <!DOCTYPE>
 <html lang="kr">
 <head>
@@ -31,7 +33,7 @@
             <tr>
                 <td> 수신</td>
                 <td><input type="text" name="to" size="80"
-                           value=<%=request.getParameter("recv") == null ? "" : request.getParameter("recv")%>></td>
+                           value="<%=request.getParameter("fromAddress")==null ?"":request.getParameter("fromAddress")%>"/></td>
             </tr>
             <tr>
                 <td>참조</td>
@@ -39,13 +41,13 @@
             </tr>
             <tr>
                 <td> 메일 제목</td>
-                <td><input type="text" name="subj" size="80"></td>
+                <td><input type="text" name="subj" size="80" value="${param.subject}"></td>
             </tr>
             <tr>
                 <td colspan="2">본 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 문</td>
             </tr>
             <tr>  <%-- TextArea    --%>
-                <td colspan="2"><textarea rows="15" name="body" cols="80"></textarea></td>
+                <td colspan="2"><textarea rows="15" name="body" cols="80">${param.body}</textarea></td>
             </tr>
             <tr>
                 <td>첨부 파일</td>

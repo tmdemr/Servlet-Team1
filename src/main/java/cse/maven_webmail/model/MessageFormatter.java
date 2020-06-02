@@ -73,7 +73,24 @@ public class MessageFormatter {
                     .append(this.userid).append("&filename=").append(attachedFile.replaceAll(" ", "%20"))
                     .append(" target=_top> ").append(attachedFile).append("</a> <br>");
         }
-
+        
+        /*
+    <form action="/write_mail">
+        <input name="username" type="hidden" value= parser.getFromAddress() /> 수신 
+        <input name="username" type="hidden" value=  />  참조 
+        <input name="username" type="hidden" value= parser.getSubject()/> 메일제목
+        <input name="username" type="hidden" value= parser.getBody() /> 메일내용
+        <button>답장하기</button>
+      </form>
+        
+        */
+        buffer.append("<form action=\"write_mail.jsp\" method=\"POST\">   "
+                + "<input type=\"hidden\" name=\"fromAddress\" value=\""+parser.getFromAddress()+"\"/>"
+                + "<input type=\"hidden\" name=\"toAddress\" value=\""+parser.getToAddress()+"\"/>"
+                + "<input type=\"hidden\" name=\"subject\" value=\""+parser.getSubject()+"\"/>"
+                        +"<input type=\"hidden\" name=\"body\" value=\""+parser.getBody()+"\"/>"
+                                +"<button type=\"submit\">답장하기</button>"
+                + "  </form>");
         return buffer.toString();
     }
 }
