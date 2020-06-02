@@ -135,6 +135,30 @@
             return pass1 === pass2
         }
 
+    
+       function characterCheck() {
+            var RegExp = /[ \{\}\[\]\/?.,;:|\)*~`!^\-_+┼<>@\#$%&\'\"\\\(\=]/gi;//정규식 구문
+            var obj = document.getElementsByName("id")[0]
+            if (RegExp.test(obj.value)) {
+                alert("특수문자는 입력하실 수 없습니다.");
+                obj.value = obj.value.substring(0, obj.value.length - 1);//특수문자를 지우는 구문
+            }
+        }
+
+
+        $(document).ready(function () {
+            $('#userId').keyup(function () {
+                if ($(this).val().length > $(this).attr('maxlength')) {
+                    alert('제한길이 초과');
+                    $(this).val($(this).val().substr(0, $(this).attr('maxlength')));
+                }
+            });
+        });
+
+
+    
+    
+    
     </script>
     <style>
         .btn {
@@ -154,7 +178,7 @@
 <table border="0" align="left">
     <tr>
         <td>사용자 ID</td>
-        <td><input type="text" id="userId" name="id" value="" size="20"/></td>
+        <td><input type="text" id="userId" name="id" onkeyup="characterCheck()" maxlength="10" onkeydown="characterCheck()" value="" size="20"/></td>
         <td>
             <a id="doubleCheck" name="doubleCheck" class="btn">아이디 중복 확인</a>
         </td>
@@ -186,6 +210,14 @@
         </td>
     </tr>
 </table>
+
+
+
+
+    
+
+
+
 
 </body>
 </html>

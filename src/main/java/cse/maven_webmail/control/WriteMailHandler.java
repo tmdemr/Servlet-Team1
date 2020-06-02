@@ -105,7 +105,6 @@ public class WriteMailHandler extends HttpServlet {
         StringBuilder successPopUp = new StringBuilder();
         successPopUp.append("<html>");
         successPopUp.append("<head>");
-
         successPopUp.append("<title>메일 전송 결과</title>");
         successPopUp.append("<link type=\"text/css\" rel=\"stylesheet\" href=\"css/main_style.css\" />");
         successPopUp.append("</head>");
