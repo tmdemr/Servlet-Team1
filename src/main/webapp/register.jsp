@@ -138,16 +138,22 @@
     
        function characterCheck() {
             var RegExp = /[ \{\}\[\]\/?.,;:|\)*~`!^\-_+┼<>@\#$%&\'\"\\\(\=]/gi;//정규식 구문
-            var obj = document.getElementsByName("id")[0]
-            if (RegExp.test(obj.value)) {
+            var obj = document.getElementsByClassName("length")[0]
+            var obj2 = document.getElementsByName("password")[0]
+            var obj3 = document.getElementsByName("passwordAuth")[0]
+            var obj4 = document.getElementsByName("name")[0]
+            if (RegExp.test(obj.value)||RegExp.test(obj2.value)||RegExp.test(obj3.value)||RegExp.test(obj4.value)) {
                 alert("특수문자는 입력하실 수 없습니다.");
                 obj.value = obj.value.substring(0, obj.value.length - 1);//특수문자를 지우는 구문
+                obj2.value = obj2.value.substring(0, obj2.value.length - 1);//특수문자를 지우는 구문
+                obj3.value = obj3.value.substring(0, obj3.value.length - 1);//특수문자를 지우는 구문
+                obj4.value = obj4.value.substring(0, obj4.value.length - 1);//특수문자를 지우는 구문
             }
         }
 
 
         $(document).ready(function () {
-            $('#userId').keyup(function () {
+            $('.length').keyup(function () {
                 if ($(this).val().length > $(this).attr('maxlength')) {
                     alert('제한길이 초과');
                     $(this).val($(this).val().substr(0, $(this).attr('maxlength')));
@@ -178,22 +184,22 @@
 <table border="0" align="left">
     <tr>
         <td>사용자 ID</td>
-        <td><input type="text" id="userId" name="id" onkeyup="characterCheck()" maxlength="10" onkeydown="characterCheck()" value="" size="20"/></td>
+        <td><input type="text" class="length" id="userId" name="id" onkeyup="characterCheck()" maxlength="10" onkeydown="characterCheck()" value="" size="20"/></td>
         <td>
             <a id="doubleCheck" name="doubleCheck" class="btn">아이디 중복 확인</a>
         </td>
     </tr>
     <tr>
         <td>암호</td>
-        <td><input type="password" name="password" id="password" value=""/></td>
+        <td><input type="password" class="length"   name="password" onkeyup="characterCheck()" maxlength="10" onkeydown="characterCheck()"  id="password" value=""/></td>
     </tr>
     <tr>
         <td>암호확인</td>
-        <td><input type="password" name="passwordAuth" id="passwordAuth" value=""/></td>
+        <td><input type="password"  class="length"   name="passwordAuth" onkeyup="characterCheck()" maxlength="10" onkeydown="characterCheck()"  id="passwordAuth" value=""/></td>
     </tr>
     <tr>
         <td>이름</td>
-        <td><input type="text" name="name" id="name" value=""/></td>
+        <td><input type="text" name="name" class="length"  onkeyup="characterCheck()" maxlength="10" onkeydown="characterCheck()"  id="name" value=""/></td>
     </tr>
     <tr>
         <td>생일</td>
