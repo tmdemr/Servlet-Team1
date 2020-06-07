@@ -6,12 +6,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <script type="text/javascript">
-    <!--
     function gohome() {
         window.location = "/maven_webmail/"
     }
-
-    -->
 </script>
 <!DOCTYPE>
 <html lang="kr">

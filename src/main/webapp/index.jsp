@@ -13,10 +13,8 @@
 
 <%
             if (session.isNew()) {
-                session.setAttribute("host", "localhost");   // should be modified if you change the POP3 server
+                session.setAttribute("host", "localhost");
                 session.setAttribute("debug", "false");
-                //session.setAttribute("pageno", "1");
-                //session.setMaxInactiveInterval(session.getMaxInactiveInterval() * 2);
             }
 %>
 <!DOCTYPE>
@@ -28,7 +26,6 @@
     </head>
 
     <body>
-        <%-- <jsp:include page="header.jspf" /> --%>
         <%@include file="header.jspf"%>
 
 
@@ -39,7 +36,7 @@
                 <input type="submit" value="로그인" name="B1">&nbsp;&nbsp;&nbsp;
                 <input type="reset" value="다시 입력" name="B2">
             </form>
-            <a href="register.jsp">회원가입</a>
+            <a href="register.jsp">회원가입</a>&nbsp;&nbsp;&nbsp;<a href="find_id_password.jsp">아이디/비밀번호 찾기</a>
         </div>
 
 

@@ -25,6 +25,10 @@ public class CommandType {
     public static final int ADD_USER_COMMAND = 61;
     public static final int DELETE_USER_COMMAND = 62;
     public static final int USER_VERIFY_COMMAND = 63;
+    public static final int FIND_ID_COMMAND = 64;
+    public static final int FIND_PASSWORD_COMMAND = 65;
+    public static final int CHANGE_PASSWORD_COMMAND = 66;
+    public static final int CHANGE_MY_INFO = 67;
     public static final int LOGIN = 91;
     public static final int LOGOUT = 92;
 }

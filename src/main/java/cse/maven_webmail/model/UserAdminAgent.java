@@ -7,13 +7,8 @@ package cse.maven_webmail.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,30 +17,33 @@ import java.util.stream.Collectors;
  */
 public class UserAdminAgent {
     private static final Logger logger = LoggerFactory.getLogger(UserAdminAgent.class); // 로거
-    private final Socket socket;
-    private final InputStream is;
-    private final OutputStream os;
+    private Socket socket;
+    private InputStream is;
+    private OutputStream os;
     private boolean isConnected = false;
     private String ROOT_ID;  //  = "root";
     private String ROOT_PASSWORD;  // = "root";
     private String ADMIN_ID; //  = "admin";
     private static final String EOL = "\r\n";
-    private final String cwd;
-
-    public UserAdminAgent(String server, int port, String cwd) throws Exception {
-        logger.info("UserAdminAgent created: server = " + server + ", port = " + port);
-        this.cwd = cwd;
-
-        initialize();
-
-        socket = new Socket(server, port);
-        is = socket.getInputStream();
-        os = socket.getOutputStream();
-
-        isConnected = connect();
+    private String cwd;
+    private String server;
+    private int port;
+    public UserAdminAgent() {
     }
 
-    private void initialize() {
+    public void setCwd(String cwd) {
+        this.cwd = cwd;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void initialize() throws Exception {
         Properties props = new Properties();
         String propertyFile = this.cwd + "/WEB-INF/classes/config/system.properties";
         propertyFile = propertyFile.replace("\\", "/");
@@ -61,7 +59,11 @@ public class UserAdminAgent {
         } catch (IOException ioe) {
             logger.error("UserAdminAgent: 초기화 실패 - {}", ioe.getMessage());
         }
+        socket = new Socket(server, port);
+        is = socket.getInputStream();
+        os = socket.getOutputStream();
 
+        isConnected = connect();
     }
 
     // return value:
@@ -69,60 +71,54 @@ public class UserAdminAgent {
     //   - false: addUser operation failed
     public boolean addUser(String userId, String password) {
         boolean status = false;
-        byte[] messageBuffer = new byte[1024];
-
         logger.info("addUser() called");
         if (!isConnected) {
             return status;
         }
-
         try {
             // 1: "adduser" command
             String addUserCommand = "adduser " + userId + " " + password + EOL;
-            os.write(addUserCommand.getBytes());
-
-            // 2: response for "adduser" command
-            java.util.Arrays.fill(messageBuffer, (byte) 0);
-            //if (is.available() > 0) {
-            is.read(messageBuffer);
-            String recvMessage = new String(messageBuffer);
+            String recvMessage = sendCommand(addUserCommand);
             logger.trace(recvMessage);
             //}
             // 3: 기존 메일사용자 여부 확인
             status = recvMessage.contains("added");
-            // 4: 연결 종료
-            quit();
-            socket.close();
+
         } catch (Exception ex) {
             logger.error("addUser failed : {}", ex.getMessage());
             status = false;
         }
         return status; // 상태 반환
     }  // addUser()
+    public boolean deleteUser(String userId){
+        boolean status = false;
+        String command = "deluser " + userId + EOL;
+        if (!isConnected) {
+            return status;
+        }
+        try {
+            String recvMessage = sendCommand(command);
+            logger.trace(recvMessage);
+            status = recvMessage.contains("deleted");
 
+        } catch (Exception ex) {
+            logger.error("deleteUser failed : {}", ex.getMessage());
+            status = false;
+        }
+        return status; // 상태 반환
+    }
     public List<String> getUserList() {
         List<String> userList = new LinkedList<>();
-        byte[] messageBuffer = new byte[1024];
-
         if (!isConnected) {
             return userList;
         }
-
         try {
             // 1: "listusers" 명령 송신
             String command = "listusers " + EOL;
-            os.write(command.getBytes());
-
-            // 2: "listusers" 명령에 대한 응답 수신
-            Arrays.fill(messageBuffer, (byte) 0);
-            is.read(messageBuffer);
-
             // 3: 응답 메시지 처리
-            String recvMessage = new String(messageBuffer);
-            logger.trace(recvMessage);
+            String recvMessage = sendCommand(command);
+            logger.info(recvMessage);
             userList = parseUserList(recvMessage);
-
-            quit();
         } catch (Exception ex) {
             logger.error("getUserList error : {}", ex.getMessage());
         }
@@ -167,11 +163,9 @@ public class UserAdminAgent {
         String command;
         String recvMessage;
         boolean status = false;
-
         if (!isConnected) {
             return false;
         }
-
         try {
             for (String userId : userList) {
                 // 1: "deluser" 명령 송신
@@ -196,28 +190,18 @@ public class UserAdminAgent {
         }
         return status;
 
-    }  // deleteUsers()
+    }
 
     public boolean verify(String userid) {
         boolean status = false;
-        byte[] messageBuffer = new byte[1024];
-
         try {
             // --> verify userid
             String verifyCommand = "verify " + userid + EOL;
-            os.write(verifyCommand.getBytes());
-
-            // read the result for verify command
-            // <-- User userid exists   or
-            // <-- User userid does not exist
-            is.read(messageBuffer);
-            String recvMessage = new String(messageBuffer);
+            String recvMessage = sendCommand(verifyCommand);
             if (recvMessage.contains("exists")) {
                 status = true;
             }
             logger.info(recvMessage);
-
-            quit();  // quit command
         } catch (IOException ex) {
             logger.error("verify error : {}", ex.getMessage());
         }
@@ -257,7 +241,7 @@ public class UserAdminAgent {
         recvMessage = new String(messageBuffer);
         logger.trace(recvMessage);
         returnVal = recvMessage.contains("Welcome");
-        logger.info("connecntion : " +returnVal );
+        logger.info("connecntion : " + returnVal);
         return returnVal;
     }  // connect()
 
@@ -272,15 +256,45 @@ public class UserAdminAgent {
             // 2: quit 명령에 대한 응답 수신
             java.util.Arrays.fill(messageBuffer, (byte) 0);
             //if (is.available() > 0) {
-            is.read(messageBuffer);
+            int bytes = is.read(messageBuffer);
+            logger.info("나가기는 {}바이트", bytes);
             // 3: 메시지 분석
             String recvMessage = new String(messageBuffer);
             logger.info(recvMessage);
-            status = recvMessage.contains("closed");
+            status = recvMessage.contains("Bye"); // Bye인걸로 확인됨 그 전의 closed는 잘못된 거임
+            socket.close();
         } catch (IOException ex) {
             logger.error("UserAdminAgent.quit() error : {}", ex.getMessage());
         }
         return status;
 
+    }
+
+    private String sendCommand(String command) throws IOException {
+        os.write(command.getBytes());
+        String quitCommand = "quit" + EOL;
+        os.write(quitCommand.getBytes());
+        byte[] allResults = is.readAllBytes();
+        byte[] quitResults = Arrays.copyOfRange(allResults, allResults.length - 6, allResults.length - 1); // Bye일거임
+        logger.info("quit일거임 : " + new String(quitResults));
+        byte[] commandResults = Arrays.copyOfRange(allResults, 0, allResults.length - 7);
+        logger.info("정보일거임 : " + new String(commandResults));
+        socket.close();
+        return new String(commandResults);
+    }
+
+    public boolean setPassword(String userId, String newPassword) {
+        boolean status = false;
+        try {
+            String setPasswordCommand = "setpassword " + userId + " " + newPassword + EOL;
+            String recvMessage = sendCommand(setPasswordCommand);
+            if (recvMessage.contains("Password")) {
+                status = true;
+            }
+            logger.info(recvMessage);
+        } catch (IOException ex) {
+            logger.error("setPassword error : {}", ex.getMessage());
+        }
+        return status;
     }
 }

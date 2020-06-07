@@ -19,6 +19,7 @@
 <p><a href="main_menu.jsp"> 메일 읽기 </a></p>
 <p><a href="write_mail.jsp"> 메일 쓰기 </a></p>
 <p><a href="sended_message_menu.jsp">보낸메일함</a></p>
+<p><a href="my_info.jsp">내 정보보기</a></p>
 <p><a href="Login.do?menu=<%= CommandType.LOGOUT %>">로그아웃</a></p>
 </body>
 </html>

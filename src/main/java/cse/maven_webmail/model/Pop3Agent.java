@@ -8,14 +8,8 @@ package cse.maven_webmail.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.mail.*;
 import java.util.Properties;
-import javax.mail.FetchProfile;
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.internet.MimeMessage;
 
 /**
  * @author jongmin
@@ -27,7 +21,7 @@ public class Pop3Agent {
     private String password;
     private Session session;
     private Store store;
-
+    private int pageNo;
     private String exceptionType;
 
     public Pop3Agent() {
@@ -112,6 +106,7 @@ public class Pop3Agent {
             folder.fetch(messages, fp);
 
             MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+            formatter.setPageNo(pageNo);
             result = formatter.getMessageTable(messages);   // 3.6
 
             folder.close(true);  // 3.7
@@ -122,6 +117,10 @@ public class Pop3Agent {
         }
         return result;
 
+    }
+
+    public void setPageNo(int pageNo) {
+        this.pageNo = pageNo;
     }
 
     public String getMessage(int n) {

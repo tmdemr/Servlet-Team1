@@ -1,4 +1,4 @@
-<%-- 
+<%@ page import="cse.maven_webmail.control.CommandType" %><%--
     Document   : show_message.jsp
     Author     : jongmin
 --%>
@@ -29,11 +29,14 @@
 
 <div id="msgBody">
     <%= pop3.getMessage(Integer.parseInt(request.getParameter("msgid")))%>
+    <form action="ReadMail.do" method="POST">
+        <input type="hidden" name="menu" value="<%=CommandType.DELETE_MAIL_COMMAND%>">
+        <input type="hidden" name="msgid" value="${param.msgid}">
+        <input type="submit" value="삭제">
+    </form>
 </div>
 
 
 <jsp:include page="footer.jsp"/>
-
-
 </body>
 </html>

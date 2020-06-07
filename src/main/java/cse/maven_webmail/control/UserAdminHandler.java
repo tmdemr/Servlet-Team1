@@ -97,7 +97,10 @@ public class UserAdminHandler extends HttpServlet {
 
     private void addUser(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
         try {
-            UserAdminAgent agent = new UserAdminAgent(host, port, path);
+            UserAdminAgent agent = new UserAdminAgent();
+            agent.setServer(host);
+            agent.setCwd(path);
+            agent.setPort(port);
             String userid = request.getParameter("id");  // for test
             String password = request.getParameter("password");// for test
             out.println("userid = " + userid + "<br>");
@@ -161,7 +164,10 @@ public class UserAdminHandler extends HttpServlet {
     private void deleteUser(HttpServletRequest request, HttpServletResponse response) {
 
         try {
-            UserAdminAgent agent = new UserAdminAgent(host, port, path);
+            UserAdminAgent agent = new UserAdminAgent();
+            agent.setServer(host);
+            agent.setCwd(path);
+            agent.setPort(port);
             String[] deleteUserList = request.getParameterValues("selectedUsers");
             agent.deleteUsers(deleteUserList);
             response.sendRedirect("admin_menu.jsp");

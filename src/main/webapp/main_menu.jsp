@@ -1,4 +1,5 @@
-<%-- 
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%--
     Document   : main_menu.jsp
     Author     : jongmin
 --%>
@@ -6,16 +7,15 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <jsp:useBean id="pop3" scope="page" class="cse.maven_webmail.model.Pop3Agent"/>
-<%
-    //String pageno = (String) request.getParameter("pageno");
-    //if (pageno != null) {
-    //    session.setAttribute("pageno", pageno);
-    //}
-    pop3.setHost((String) session.getAttribute("host"));
-    pop3.setUserid((String) session.getAttribute("userid"));
-    pop3.setPassword((String) session.getAttribute("password"));
-    //pop3.setPageno((int)Integer.parseInt((String)session.getAttribute("pageno")));
-%>
+<jsp:setProperty name="pop3" property="host" value="${host}"/>
+<jsp:setProperty name="pop3" property="userid" value="${userid}"/>
+<jsp:setProperty name="pop3" property="password" value="${password}"/>
+<c:if test="${not empty param.pageNo}">
+    <jsp:setProperty name="pop3" property="pageNo" value="${param.pageNo}"/>
+</c:if>
+<c:if test="${empty param.pageNo}">
+    <jsp:setProperty name="pop3" property="pageNo" value="1"/>
+</c:if>
 <!DOCTYPE>
 <html lang="kr">
 <head>

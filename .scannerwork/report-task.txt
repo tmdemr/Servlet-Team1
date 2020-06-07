@@ -2,5 +2,5 @@ projectKey=maven_webmail
 serverUrl=http://113.198.234.124:9000
 serverVersion=8.2.0.32929
 dashboardUrl=http://113.198.234.124:9000/dashboard?id=maven_webmail
-ceTaskId=AXI3KXmAo4uWwcX_zLCv
-ceTaskUrl=http://113.198.234.124:9000/api/ce/task?id=AXI3KXmAo4uWwcX_zLCv
+ceTaskId=AXKNy2Z2o4uWwcX_zLDG
+ceTaskUrl=http://113.198.234.124:9000/api/ce/task?id=AXKNy2Z2o4uWwcX_zLDG

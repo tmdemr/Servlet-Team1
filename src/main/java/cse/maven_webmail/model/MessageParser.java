@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import javax.activation.DataHandler;
 import javax.mail.Address;
 import javax.mail.Message;
@@ -138,6 +139,7 @@ public class MessageParser {
     }
 
     private String getAddresses(Address[] addresses) {
+        /*
         StringBuilder buffer = new StringBuilder();
 
         for (Address address : addresses) {
@@ -147,7 +149,9 @@ public class MessageParser {
         int start = buffer.length() - 2;
         int end = buffer.length() - 1;
         buffer.delete(start, end);
-        return buffer.toString();
+        */
+        String[] addressStrings = Arrays.stream(addresses).map(Address::toString).distinct().toArray(String[]::new); // java 8
+        return String.join(", ", addressStrings); // java 9
     }
 
     public String getBody() {

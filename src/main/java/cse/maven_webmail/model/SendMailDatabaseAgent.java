@@ -92,18 +92,19 @@ public class SendMailDatabaseAgent {
              PreparedStatement preparedStatement = connection.prepareStatement(query)
         ) {
             preparedStatement.setString(1, this.userId);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            int i = 0;
-            while (resultSet.next()) {
-                stringBuilder.append("<tr> " + " <td id=no>").append(i + 1).append(" </td> ");
-                stringBuilder.append("<td><a href=\"show_sended_message.jsp?messageId=")
-                        .append(resultSet.getString(1))
-                        .append("\">").append(resultSet.getString(2)).append("</a></td>");
-                stringBuilder.append("<td>").append(resultSet.getString(3)).append("</td>");
-                stringBuilder.append("<td>").append(resultSet.getDate(4)).append("</td>");
-                stringBuilder.append("<td><a href=\"sendedMail.do?menu=").append(CommandType.DELETE_MAIL_COMMAND).append("&userId=").append(userId)
-                        .append("&messageId=").append(resultSet.getString(1)).append("\"").append(">삭제</a></td>");
-                i++;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                int i = 0;
+                while (resultSet.next()) {
+                    stringBuilder.append("<tr> " + " <td id=no>").append(i + 1).append(" </td> ");
+                    stringBuilder.append("<td><a href=\"show_sended_message.jsp?messageId=")
+                            .append(resultSet.getString(1))
+                            .append("\">").append(resultSet.getString(2)).append("</a></td>");
+                    stringBuilder.append("<td>").append(resultSet.getString(3)).append("</td>");
+                    stringBuilder.append("<td>").append(resultSet.getDate(4)).append("</td>");
+                    stringBuilder.append("<td><a href=\"sendedMail.do?menu=").append(CommandType.DELETE_MAIL_COMMAND).append("&userId=").append(userId)
+                            .append("&messageId=").append(resultSet.getString(1)).append("\"").append(">삭제</a></td>");
+                    i++;
+                }
             }
         } catch (SQLException throwables) {
             logger.error(new Date() + throwables.getMessage());
@@ -123,20 +124,20 @@ public class SendMailDatabaseAgent {
              PreparedStatement preparedStatement = connection.prepareStatement(query);
         ) {
             preparedStatement.setString(1, messageId);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            resultSet.next();
-            stringBuilder.append("받은 사람: ").append(resultSet.getString(1)).append(" <br>");
-            stringBuilder.append("Cc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ").append(resultSet.getString(2)).append(" <br>");
-            stringBuilder.append("보낸 날짜: ").append(resultSet.getDate(6)).append(" <br>");
-            stringBuilder.append("제 &nbsp;&nbsp;&nbsp;  목: ").append(resultSet.getString(3)).append(" <br> <hr>");
-            stringBuilder.append(resultSet.getString(4));
-            String attachedFile = resultSet.getString(5);
-            if (attachedFile != null) {
-                stringBuilder.append("<br> <hr> 첨부파일: <a href=\"sendedMail.do?menu=").append(CommandType.DOWNLOAD_COMMAND).append("&userId=").append(userId)
-                        .append("&messageId=").append(messageId).append("&fileName=").append(attachedFile).append("\" target=\"_top\">").append(attachedFile)
-                        .append("</a>");
+            try (ResultSet resultSet = preparedStatement.executeQuery();) {
+                resultSet.next();
+                stringBuilder.append("받은 사람: ").append(resultSet.getString(1)).append(" <br>");
+                stringBuilder.append("Cc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ").append(resultSet.getString(2)).append(" <br>");
+                stringBuilder.append("보낸 날짜: ").append(resultSet.getDate(6)).append(" <br>");
+                stringBuilder.append("제 &nbsp;&nbsp;&nbsp;  목: ").append(resultSet.getString(3)).append(" <br> <hr>");
+                stringBuilder.append(resultSet.getString(4));
+                String attachedFile = resultSet.getString(5);
+                if (attachedFile != null) {
+                    stringBuilder.append("<br> <hr> 첨부파일: <a href=\"sendedMail.do?menu=").append(CommandType.DOWNLOAD_COMMAND).append("&userId=").append(userId)
+                            .append("&messageId=").append(messageId).append("&fileName=").append(attachedFile).append("\" target=\"_top\">").append(attachedFile)
+                            .append("</a>");
+                }
             }
-            resultSet.close();
         } catch (SQLException throwables) {
             logger.error(new Date() + throwables.getMessage());
         }
@@ -151,13 +152,14 @@ public class SendMailDatabaseAgent {
         ) {
             preparedStatement.setString(1, messageId);
             preparedStatement.setString(2, userId);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            resultSet.next();
-            FileOutputStream fileOutputStream = new FileOutputStream(new File(directory + "/" + fileName));
-            InputStream inputStream = resultSet.getBinaryStream(1);
-            fileOutputStream.write(inputStream.readAllBytes());
-            fileOutputStream.close();
-            resultSet.close();
+            try (ResultSet resultSet = preparedStatement.executeQuery();) {
+                resultSet.next();
+                try (FileOutputStream fileOutputStream = new FileOutputStream(new File(directory + "/" + fileName));
+                     InputStream inputStream = resultSet.getBinaryStream(1)) {
+                    fileOutputStream.write(inputStream.readAllBytes());
+
+                }
+            }
         } catch (SQLException | IOException throwables) {
             logger.error(new Date() + throwables.getMessage());
         }
