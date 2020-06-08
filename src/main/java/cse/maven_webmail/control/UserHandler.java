@@ -83,9 +83,9 @@ public class UserHandler extends HttpServlet {
         userDatabaseAgent.setUserId(userId);
         if (userDatabaseAgent.deleteUser()) {
             UserAdminAgent userAdminAgent = new UserAdminAgent();
-            userAdminAgent.setServer(host);
             userAdminAgent.setCwd(path);
             userAdminAgent.setPort(port);
+            userAdminAgent.setServer(host);
             if (userAdminAgent.deleteUser(userId)) {
                 try (PrintWriter out = response.getWriter()) {
                     out.println("<head>\n" +
@@ -165,9 +165,9 @@ public class UserHandler extends HttpServlet {
 
     private void addUser(HttpServletRequest request, HttpServletResponse response) throws Exception {
         UserAdminAgent userAdminAgent = new UserAdminAgent();
-        userAdminAgent.setServer(host);
         userAdminAgent.setCwd(path);
         userAdminAgent.setPort(port);
+        userAdminAgent.setServer(host);
         String phoneNumber = request.getParameter("phoneNumber");
         String name = request.getParameter("name");
         String birthdayString = request.getParameter("birthday");
@@ -197,9 +197,9 @@ public class UserHandler extends HttpServlet {
         String userId = request.getParameter("userId");
         logger.info(userId);
         UserAdminAgent userAdminAgent = new UserAdminAgent();
-        userAdminAgent.setServer(host);
         userAdminAgent.setCwd(path);
         userAdminAgent.setPort(port);
+        userAdminAgent.setServer(host);
         boolean status = userAdminAgent.verify(userId);
         try (PrintWriter out = response.getWriter()) {
             if (status) {
@@ -242,9 +242,9 @@ public class UserHandler extends HttpServlet {
         String userId = request.getParameter("userId");
         String password = request.getParameter("password");
         UserAdminAgent userAdminAgent = new UserAdminAgent();
-        userAdminAgent.setServer(host);
         userAdminAgent.setCwd(path);
         userAdminAgent.setPort(port);
+        userAdminAgent.setServer(host);
         try (PrintWriter out = response.getWriter()) {
             if (userAdminAgent.setPassword(userId, password)) {
                 out.print("password change success");

@@ -8,7 +8,7 @@
 <jsp:setProperty name="userAdminAgent" property="cwd" value="${pageContext.servletContext.getRealPath('.')}"/>
 <jsp:setProperty name="userAdminAgent" property="port" value="4555"/>
 <jsp:setProperty name="userAdminAgent" property="server" value="localhost"/>
-<% userAdminAgent.initialize();%>
+
 <!DOCTYPE>
 <html lang="kr">
 <head>

@@ -103,5 +103,7 @@
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-analysis:7.2" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-tree:7.2" level="project" />
     <orderEntry type="library" name="Maven: org.jacoco:org.jacoco.report:0.8.5" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-core:0.8.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-dom:0.8.3" level="project" />
   </component>
 </module>

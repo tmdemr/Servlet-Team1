@@ -29,6 +29,14 @@
         <servlet-name>UserHandler</servlet-name>
         <servlet-class>cse.maven_webmail.control.UserHandler</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>TrashHandler</servlet-name>
+        <servlet-class>cse.maven_webmail.control.TrashHandler</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TrashHandler</servlet-name>
+        <url-pattern>/trash.do</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>UserHandler</servlet-name>
         <url-pattern>/userHandle.do</url-pattern>

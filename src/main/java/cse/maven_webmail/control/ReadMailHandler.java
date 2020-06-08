@@ -66,10 +66,7 @@ public class ReadMailHandler extends HttpServlet {
 
     private void download(HttpServletRequest request, HttpServletResponse response) { //throws IOException {
         response.setContentType("application/octet-stream");
-
-        ServletOutputStream sos;
-
-        try {
+        try (ServletOutputStream sos = response.getOutputStream()){
             /* TODO output your page here */
             request.setCharacterEncoding(StandardCharsets.UTF_8.name());
             // LJM 041203 - 아래와 같이 해서 한글파일명 제대로 인식되는 것 확인했음.
@@ -80,9 +77,7 @@ public class ReadMailHandler extends HttpServlet {
 //            fileName = fileName.replaceAll(" ", "+");
             String userid = request.getParameter("userid");
             //String fileName = URLDecoder.decode(request.getParameter("filename"), "utf-8");
-
             // download할 파일 읽기
-
             // LJM 090430 : 수정해야 할 부분 - start ------------------
             // 리눅스 서버 사용시
             //String downloadDir = "/var/spool/webmail/download/";
@@ -90,29 +85,23 @@ public class ReadMailHandler extends HttpServlet {
             // 윈도우즈 환경 사용시
             String downloadDir = "C:/temp/download/";
             // LJM 090430 : 수정해야 할 부분 - end   ------------------
-
 //            response.setHeader("Content-Disposition", "attachment; filename=" +
 //                    MimeUtility.encodeText(fileName) + ";");
-
 //            response.setHeader("Content-Disposition", "attachment; filename=" +
 //                    MimeUtility.encodeText(fileName, "UTF-8", "B") + ";");
-
             response.setHeader("Content-Disposition", "attachment; filename="
                     + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + ";");
 
             File f = new File(downloadDir + userid + "/" + fileName);
-            byte[] b = new byte[(int) f.length()];
+            byte[] b;
             // try-with-resource 문은 fis를 명시적으로 close해 주지 않아도 됨.
             try (FileInputStream fis = new FileInputStream(f)) {
-                fis.read(b);
+                b = fis.readAllBytes();
             }
             ;
-
             // 다운로드
-            sos = response.getOutputStream();
             sos.write(b);
             sos.flush();
-            sos.close();
         } catch (Exception ex) {
             logger.error("====== DOWNLOAD exception : {}", ex.getMessage());
         }

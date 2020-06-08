@@ -28,6 +28,12 @@ public class UserAdminAgent {
     private String cwd;
     private String server;
     private int port;
+    private int pageNo;
+
+    public void setPageNo(int pageNo) {
+        this.pageNo = pageNo;
+    }
+
     public UserAdminAgent() {
     }
 
@@ -35,8 +41,9 @@ public class UserAdminAgent {
         this.cwd = cwd;
     }
 
-    public void setServer(String server) {
+    public void setServer(String server) throws Exception {
         this.server = server;
+        initialize();
     }
 
     public void setPort(int port) {
@@ -276,7 +283,7 @@ public class UserAdminAgent {
         os.write(quitCommand.getBytes());
         byte[] allResults = is.readAllBytes();
         byte[] quitResults = Arrays.copyOfRange(allResults, allResults.length - 6, allResults.length - 1); // Bye일거임
-        logger.info("quit일거임 : " + new String(quitResults));
+        logger.info("quit의 Bye일거임 : " + new String(quitResults));
         byte[] commandResults = Arrays.copyOfRange(allResults, 0, allResults.length - 7);
         logger.info("정보일거임 : " + new String(commandResults));
         socket.close();

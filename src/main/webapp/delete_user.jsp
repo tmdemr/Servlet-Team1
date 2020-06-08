@@ -30,7 +30,7 @@
 <jsp:setProperty name="userAdminAgent" property="cwd" value="${pageContext.servletContext.getRealPath('.')}"/>
 <jsp:setProperty name="userAdminAgent" property="port" value="4555"/>
 <jsp:setProperty name="userAdminAgent" property="server" value="localhost"/>
-<% userAdminAgent.initialize();%>
+
 <div id="sidebar">
     <%-- 사용자 추가때와 동일하므로 같은 메뉴 사용함. --%>
     <jsp:include page="sidebar_admin_previous_menu.jsp"/>

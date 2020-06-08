@@ -9,10 +9,8 @@
 
 
 <jsp:useBean id="sendMessageHandler" scope="page" class="cse.maven_webmail.model.SendMailDatabaseAgent"/>
-<%
-    sendMessageHandler.setUserId((String) session.getAttribute("userid"));
-    sendMessageHandler.setMessageId(request.getParameter("messageId"));
-%>
+<jsp:setProperty name="sendMessageHandler" property="userId" value="${userid}"/>
+<jsp:setProperty name="sendMessageHandler" property="messageId" value="${param.messageId}"/>
 
 <!DOCTYPE>
 <html lang="kr">
@@ -32,9 +30,7 @@
     <%= sendMessageHandler.getMessage()%>
 </div>
 
-
 <jsp:include page="footer.jsp"/>
-
 
 </body>
 </html>
