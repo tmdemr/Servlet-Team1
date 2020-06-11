@@ -112,6 +112,11 @@
             <artifactId>apache-mime4j-dom</artifactId>
             <version>0.8.3</version>
         </dependency>
+        <dependency>
+            <groupId>tech.blueglacier</groupId>
+            <artifactId>email-mime-parser</artifactId>
+            <version>1.0.5</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -5,7 +5,6 @@ import org.apache.james.mime4j.message.SimpleContentHandler;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeUtility;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +27,6 @@ public class TrashMessageFormatter extends SimpleContentHandler {
     private String fileName;
     private InputStream fileStream;
     private boolean file;
-
     public String getCc() {
         return cc;
     }
@@ -79,7 +77,7 @@ public class TrashMessageFormatter extends SimpleContentHandler {
         if (mapFields.get("Content-Disposition") != null) {
             String contentDisposition = mapFields.get("Content-Disposition");
             file = true;
-            fileName = contentDisposition.split("=")[1];
+            fileName = decode(contentDisposition.split("=")[1]);
         }
     }
 
@@ -94,8 +92,12 @@ public class TrashMessageFormatter extends SimpleContentHandler {
             }
         } else {
             fileStream = is;
+            System.out.println(fileStream);
+            file = false;
         }
     }
+
+
 
     public void startMessage() {
 

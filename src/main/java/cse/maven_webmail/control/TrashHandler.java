@@ -3,15 +3,20 @@ package cse.maven_webmail.control;
 import cse.maven_webmail.model.TrashMailAgent;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class TrashHandler extends HttpServlet {
+    private static final String TEMP_DOWNLOAD_DIR = "C:/temp/upload";
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -22,9 +27,7 @@ public class TrashHandler extends HttpServlet {
                 //delete
                 break;
             case CommandType.DOWNLOAD_COMMAND:
-                try(PrintWriter out = response.getWriter()){
-                    out.println("아직 휴지통 다운로드 구현안했어요.");
-                }
+                download(request, response);
                 //download
                 break;
             case CommandType.RESTORE_MAIL_COMMAND:
@@ -38,9 +41,26 @@ public class TrashHandler extends HttpServlet {
                 break;
         }
     }
-    private void download(HttpServletRequest request, HttpServletResponse response){
 
+    private void download(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/octet-stream");
+        String messageName = request.getParameter("messageName");
+        try (ServletOutputStream sos = response.getOutputStream();
+        ) {
+            TrashMailAgent trashMailAgent = new TrashMailAgent();
+            trashMailAgent.setMessageName(messageName);
+            trashMailAgent.setDir(TEMP_DOWNLOAD_DIR);
+            trashMailAgent.download();
+            String fileName = trashMailAgent.getFileName();
+            System.out.println("fileName = " + fileName);
+            response.setHeader("Content-Disposition", "attachment; filename="
+                    + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + ";");
+            try (FileInputStream fileInputStream = new FileInputStream(TEMP_DOWNLOAD_DIR + "/" + fileName)) {
+                sos.write(fileInputStream.readAllBytes());
+            }
+        }
     }
+
     private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String messageName = request.getParameter("messageName");
         TrashMailAgent trashMailAgent = new TrashMailAgent();
@@ -48,7 +68,9 @@ public class TrashHandler extends HttpServlet {
         if (trashMailAgent.delete()) {
             response.sendRedirect("trash.jsp");
         } else {
-            //실패
+            try (PrintWriter out = response.getWriter()) {
+                out.println("메일 삭제중 오류가 발생하였습니다.");
+            }
         }
     }
 
@@ -59,7 +81,9 @@ public class TrashHandler extends HttpServlet {
         if (trashMailAgent.restore()) {
             response.sendRedirect("trash.jsp");
         } else {
-            //실패
+            try (PrintWriter out = response.getWriter()) {
+                out.println("메일 복구중 오류가 발생하였습니다.");
+            }
         }
     }
 

@@ -23,6 +23,8 @@ public class Pop3Agent {
     private Store store;
     private int pageNo;
     private String exceptionType;
+    private static final int MAX_PAGE_MESSAGE = 10;
+    private static final int MAX_PAGE = 5;
 
     public Pop3Agent() {
     }
@@ -49,7 +51,7 @@ public class Pop3Agent {
 
     public boolean deleteMessage(int msgid, boolean really_delete) {
         boolean status = false;
-        logger.info("deleteMessage 값 : {}",msgid);
+        logger.info("deleteMessage 값 : {}", msgid);
 
         if (!connectToStore()) {
             return false;
@@ -63,9 +65,9 @@ public class Pop3Agent {
             // Message에 DELETED flag 설정
             Message msg = folder.getMessage(msgid);
 
-            logger.info("message id : {}",msg.getHeader("Message-ID"));
-            logger.info("message number : {}",msg.getMessageNumber());
-            logger.info("{}",msg.getSubject());
+            logger.info("message id : {}", msg.getHeader("Message-ID"));
+            logger.info("message number : {}", msg.getMessageNumber());
+            logger.info("{}", msg.getSubject());
             msg.setFlag(Flags.Flag.DELETED, really_delete);
 
             // 폴더에서 메시지 삭제
@@ -92,21 +94,30 @@ public class Pop3Agent {
             System.err.println("POP3 connection failed!");
             return "POP3 연결이 되지 않아 메일 목록을 볼 수 없습니다.";
         }
-
+        int counts = 0;
         try {
             // 메일 폴더 열기
             Folder folder = store.getFolder("INBOX");  // 3.2
             folder.open(Folder.READ_ONLY);  // 3.3
 
             // 현재 수신한 메시지 모두 가져오기
-            messages = folder.getMessages();      // 3.4
+            counts = folder.getMessageCount();
+            int start = counts - (pageNo) * MAX_PAGE_MESSAGE;
+
+            int end = start + MAX_PAGE_MESSAGE;
+
+            end = Math.min(counts, end);
+            logger.info("start : {} end : {}", start, end);
+            start += 1;
+            start = Math.max(start, 1);
+            messages = folder.getMessages(start, end);      // 3.4
             FetchProfile fp = new FetchProfile();
             // From, To, Cc, Bcc, ReplyTo, Subject & Date
             fp.add(FetchProfile.Item.ENVELOPE);
             folder.fetch(messages, fp);
 
             MessageFormatter formatter = new MessageFormatter(userid);  //3.5
-            formatter.setPageNo(pageNo);
+
             result = formatter.getMessageTable(messages);   // 3.6
 
             folder.close(true);  // 3.7
@@ -115,8 +126,44 @@ public class Pop3Agent {
             logger.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
             result = "Pop3Agent.getMessageList() : exception = " + ex;
         }
-        return result;
+        StringBuilder stringBuilder = new StringBuilder(result);
+        if (counts < MAX_PAGE_MESSAGE) {
 
+        } else {
+            int totalPage = (int) Math.ceil(counts / MAX_PAGE_MESSAGE) + 1;
+            if (pageNo == 1) {
+                stringBuilder.append("첫페이지로");
+                stringBuilder.append("&nbsp;");
+                stringBuilder.append("&lt;");
+            } else {
+                stringBuilder.append("<a href=\"main_menu.jsp?pageNo=1\">첫페이지로</a>");
+                stringBuilder.append("&nbsp;");
+                stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(pageNo - 1).append("\">&lt;</a>");
+            }
+            stringBuilder.append("&nbsp;");
+            int endPage = (int) (Math.ceil(pageNo / (double) MAX_PAGE) * MAX_PAGE);
+            int startPage = (endPage - MAX_PAGE) + 1;
+
+            endPage = Math.min(endPage, totalPage);
+            for (int i = startPage; i <= endPage; i++) {
+                if (i == pageNo) {
+                    stringBuilder.append(i);
+                } else {
+                    stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(i).append("\">").append(i).append("</a>");
+                }
+                stringBuilder.append("&nbsp;");
+            }
+            if (pageNo == totalPage) {
+                stringBuilder.append("&gt;");
+                stringBuilder.append("&nbsp;");
+                stringBuilder.append("마지막페이지로");
+            } else {
+                stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(pageNo + 1).append("\">&gt;</a>");
+                stringBuilder.append("&nbsp;");
+                stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(totalPage).append("\">마지막페이지로</a>");
+            }
+        }
+        return stringBuilder.toString();
     }
 
     public void setPageNo(int pageNo) {

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -23,9 +24,18 @@ public class TrashMailAgent {
     private String userId;
     private String messageName;
     private String result;
-
+    private String dir;
+    private String fileName;
     public TrashMailAgent() {
 
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setDir(String dir) {
+        this.dir = dir;
     }
 
     public void setUserId(String userId) {
@@ -80,6 +90,38 @@ public class TrashMailAgent {
             return "오류가 발생했습니다." + throwables.getMessage();
         }
         return result;
+    }
+
+    public void download() {
+
+        String sql = "SELECT message_body FROM trash WHERE message_name = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ) {
+            preparedStatement.setString(1, messageName);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    try (InputStream inputStream = resultSet.getBinaryStream(1)) {
+                        TrashMessageFormatter trashMessageFormatter = new TrashMessageFormatter();
+                        MimeStreamParser parser = new MimeStreamParser();
+                        parser.setContentHandler(trashMessageFormatter);
+                        parser.parse(inputStream);
+                        fileName = trashMessageFormatter.getFileName();
+                        try (InputStream fileStream = trashMessageFormatter.getFileStream();
+                             FileOutputStream fileOutputStream = new FileOutputStream(dir + "/" + fileName);
+                        ) {
+                            byte[] decoded = fileStream.readAllBytes();
+                            fileOutputStream.write(decoded);
+                        }
+                    }
+                } else {
+                    logger.error("messageName을 못찾았음 : {}", messageName);
+                }
+            }
+        } catch (SQLException | NamingException | MimeException | IOException throwables) {
+            logger.error(throwables.getMessage());
+        }
     }
 
     public List<String> getResults() {
