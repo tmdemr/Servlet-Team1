@@ -102,20 +102,26 @@ public class Pop3Agent {
 
             // 현재 수신한 메시지 모두 가져오기
             counts = folder.getMessageCount();
-            int start = counts - (pageNo) * MAX_PAGE_MESSAGE;
+            int start = (pageNo -1) * MAX_PAGE_MESSAGE +1;
 
-            int end = start + MAX_PAGE_MESSAGE;
-
+            int end = pageNo * MAX_PAGE_MESSAGE;
             end = Math.min(counts, end);
+
             logger.info("start : {} end : {}", start, end);
-            start += 1;
-            start = Math.max(start, 1);
+
             messages = folder.getMessages(start, end);      // 3.4
             FetchProfile fp = new FetchProfile();
             // From, To, Cc, Bcc, ReplyTo, Subject & Date
             fp.add(FetchProfile.Item.ENVELOPE);
             folder.fetch(messages, fp);
-
+            
+            /*
+            System.out.println(start);//시작
+            System.out.println(end);//끝
+            System.out.println(counts);//메시지 수
+            System.out.println(pageNo);//현재페이지
+*/
+            
             MessageFormatter formatter = new MessageFormatter(userid);  //3.5
 
             result = formatter.getMessageTable(messages);   // 3.6
@@ -130,7 +136,7 @@ public class Pop3Agent {
         if (counts < MAX_PAGE_MESSAGE) {
 
         } else {
-            int totalPage = (int) Math.ceil(counts / MAX_PAGE_MESSAGE) + 1;
+            int totalPage = counts / MAX_PAGE_MESSAGE + (counts%MAX_PAGE_MESSAGE == 0 ? 0 : 1);
             if (pageNo == 1) {
                 stringBuilder.append("첫페이지로");
                 stringBuilder.append("&nbsp;");
@@ -141,10 +147,17 @@ public class Pop3Agent {
                 stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(pageNo - 1).append("\">&lt;</a>");
             }
             stringBuilder.append("&nbsp;");
-            int endPage = (int) (Math.ceil(pageNo / (double) MAX_PAGE) * MAX_PAGE);
-            int startPage = (endPage - MAX_PAGE) + 1;
+            
+            int startPage = ((pageNo/MAX_PAGE)-(pageNo%MAX_PAGE==0 ? 1 : 0)) * MAX_PAGE + 1;
+            int endPage = startPage + MAX_PAGE -1;
+            
+            System.out.println(startPage);
+            System.out.println(endPage);
 
             endPage = Math.min(endPage, totalPage);
+            System.out.println(endPage);
+             System.out.println(totalPage);
+            
             for (int i = startPage; i <= endPage; i++) {
                 if (i == pageNo) {
                     stringBuilder.append(i);
@@ -157,6 +170,7 @@ public class Pop3Agent {
                 stringBuilder.append("&gt;");
                 stringBuilder.append("&nbsp;");
                 stringBuilder.append("마지막페이지로");
+                
             } else {
                 stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(pageNo + 1).append("\">&gt;</a>");
                 stringBuilder.append("&nbsp;");
@@ -164,6 +178,7 @@ public class Pop3Agent {
             }
         }
         return stringBuilder.toString();
+        
     }
 
     public void setPageNo(int pageNo) {
