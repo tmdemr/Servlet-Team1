@@ -29,6 +29,10 @@ public class CommandType {
     public static final int FIND_PASSWORD_COMMAND = 65;
     public static final int CHANGE_PASSWORD_COMMAND = 66;
     public static final int CHANGE_MY_INFO = 67;
+    public static final int ADD_ADDRESS = 68;
+    public static final int CHANGE_ADDRESS = 69;
+    public static final int DELETE_ADDRESS = 70;
+    
     public static final int LOGIN = 91;
     public static final int LOGOUT = 92;
 }

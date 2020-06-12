@@ -33,6 +33,14 @@
         <servlet-name>TrashHandler</servlet-name>
         <servlet-class>cse.maven_webmail.control.TrashHandler</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-class>cse.maven_webmail.control.AddressHandler</servlet-class>
+        <servlet-name>AddressHandler</servlet-name>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddressHandler</servlet-name>
+        <url-pattern>/address.do</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>TrashHandler</servlet-name>
         <url-pattern>/trash.do</url-pattern>
