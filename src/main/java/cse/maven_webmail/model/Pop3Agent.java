@@ -102,12 +102,15 @@ public class Pop3Agent {
 
             // 현재 수신한 메시지 모두 가져오기
             counts = folder.getMessageCount();
-            int start = (pageNo -1) * MAX_PAGE_MESSAGE +1;
+            int start =counts - (pageNo) * MAX_PAGE_MESSAGE;
 
-            int end = pageNo * MAX_PAGE_MESSAGE;
+            int end = start + MAX_PAGE_MESSAGE;
+            
             end = Math.min(counts, end);
-
+            
             logger.info("start : {} end : {}", start, end);
+            
+            start = Math.max(start,1);
 
             messages = folder.getMessages(start, end);      // 3.4
             FetchProfile fp = new FetchProfile();
@@ -151,12 +154,8 @@ public class Pop3Agent {
             int startPage = ((pageNo/MAX_PAGE)-(pageNo%MAX_PAGE==0 ? 1 : 0)) * MAX_PAGE + 1;
             int endPage = startPage + MAX_PAGE -1;
             
-            System.out.println(startPage);
-            System.out.println(endPage);
-
+            
             endPage = Math.min(endPage, totalPage);
-            System.out.println(endPage);
-             System.out.println(totalPage);
             
             for (int i = startPage; i <= endPage; i++) {
                 if (i == pageNo) {
