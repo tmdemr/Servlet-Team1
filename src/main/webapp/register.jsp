@@ -142,11 +142,25 @@
             var obj2 = document.getElementsByName("password")[0]
             var obj3 = document.getElementsByName("passwordAuth")[0]
             var obj4 = document.getElementsByName("name")[0]
-            if (RegExp.test(obj.value) || RegExp.test(obj2.value) || RegExp.test(obj3.value) || RegExp.test(obj4.value)) {
+            if (RegExp.test(obj.value) ) {
                 alert("특수문자는 입력하실 수 없습니다.");
                 obj.value = obj.value.substring(0, obj.value.length - 1);//특수문자를 지우는 구문
+    
+            }
+                if (RegExp.test(obj2.value)) {
+                alert("특수문자는 입력하실 수 없습니다.");
+
                 obj2.value = obj2.value.substring(0, obj2.value.length - 1);//특수문자를 지우는 구문
+
+            }
+            
+                if (RegExp.test(obj3.value)) {
+                alert("특수문자는 입력하실 수 없습니다.");
                 obj3.value = obj3.value.substring(0, obj3.value.length - 1);//특수문자를 지우는 구문
+            }
+            
+                if (RegExp.test(obj4.value)) {
+                alert("특수문자는 입력하실 수 없습니다.");
                 obj4.value = obj4.value.substring(0, obj4.value.length - 1);//특수문자를 지우는 구문
             }
         }
