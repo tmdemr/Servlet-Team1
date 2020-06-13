@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.mail.*;
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -25,6 +26,14 @@ public class Pop3Agent {
     private String exceptionType;
     private static final int MAX_PAGE_MESSAGE = 10;
     private static final int MAX_PAGE = 5;
+    private String searchType;
+    private String searchKeyword;
+
+    public void setSearchType(String searchType) {
+        this.searchType = searchType;
+    }
+
+
 
     public Pop3Agent() {
     }
@@ -94,25 +103,58 @@ public class Pop3Agent {
             System.err.println("POP3 connection failed!");
             return "POP3 연결이 되지 않아 메일 목록을 볼 수 없습니다.";
         }
+        logger.info("타입 : {}",searchType);
+        logger.info("키워드 : {}",searchKeyword);
         int counts = 0;
+        int start;
+        int end;
         try {
             // 메일 폴더 열기
             Folder folder = store.getFolder("INBOX");  // 3.2
             folder.open(Folder.READ_ONLY);  // 3.3
+            if (searchKeyword != null && !searchKeyword.equals("")) {
+                if (searchType.equals("subject")) {
+                    messages = Arrays.stream(folder.getMessages()).filter(message -> {
+                        String subject;
+                        try {
+                            subject = message.getSubject();
+                        } catch (MessagingException e) {
+                            return false;
+                        }
+                        return subject.contains(searchKeyword);
+                    }).toArray(Message[]::new);
+                    counts = messages.length ;
 
-            // 현재 수신한 메시지 모두 가져오기
-            counts = folder.getMessageCount();
-            int start =counts - (pageNo) * MAX_PAGE_MESSAGE;
+                } else if (searchType.equals("from")) {
+                    messages = Arrays.stream(folder.getMessages()).filter(message -> {
+                        String from;
+                        try {
+                            from = String.join(", ", Arrays.stream(message.getFrom()).map(Address::toString).toArray(String[]::new));
+                        } catch (MessagingException e) {
+                            return false;
+                        }
+                        return from.contains(searchKeyword);
+                    }).toArray(Message[]::new);
+                    counts = messages.length;
 
-            int end = start + MAX_PAGE_MESSAGE;
-            
-            end = Math.min(counts, end);
-            
-            logger.info("start : {} end : {}", start, end);
-            
-            start = Math.max(start,1);
-
-            messages = folder.getMessages(start, end);      // 3.4
+                } else {
+                    counts = folder.getMessageCount();
+                    start =counts + 1 - (pageNo) * MAX_PAGE_MESSAGE;
+                    end = start-1 + MAX_PAGE_MESSAGE;
+                    end = Math.min(counts, end);
+                    logger.info("start : {} end : {}", start, end);
+                    start = Math.max(start,1);
+                    messages = folder.getMessages(start, end);      // 3.4
+                }
+            } else {
+                counts = folder.getMessageCount();
+                start =counts + 1 - (pageNo) * MAX_PAGE_MESSAGE;
+                end = start-1 + MAX_PAGE_MESSAGE;
+                end = Math.min(counts, end);
+                logger.info("start : {} end : {}", start, end);
+                start = Math.max(start,1);
+                messages = folder.getMessages(start, end);      // 3.4
+            }
             FetchProfile fp = new FetchProfile();
             // From, To, Cc, Bcc, ReplyTo, Subject & Date
             fp.add(FetchProfile.Item.ENVELOPE);
@@ -124,7 +166,7 @@ public class Pop3Agent {
             System.out.println(counts);//메시지 수
             System.out.println(pageNo);//현재페이지
 */
-            
+
             MessageFormatter formatter = new MessageFormatter(userid);  //3.5
 
             result = formatter.getMessageTable(messages);   // 3.6
@@ -139,7 +181,7 @@ public class Pop3Agent {
         if (counts < MAX_PAGE_MESSAGE) {
 
         } else {
-            int totalPage = counts / MAX_PAGE_MESSAGE + (counts%MAX_PAGE_MESSAGE == 0 ? 0 : 1);
+            int totalPage = counts / MAX_PAGE_MESSAGE + (counts % MAX_PAGE_MESSAGE == 0 ? 0 : 1);
             if (pageNo == 1) {
                 stringBuilder.append("첫페이지로");
                 stringBuilder.append("&nbsp;");
@@ -150,13 +192,13 @@ public class Pop3Agent {
                 stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(pageNo - 1).append("\">&lt;</a>");
             }
             stringBuilder.append("&nbsp;");
-            
-            int startPage = ((pageNo/MAX_PAGE)-(pageNo%MAX_PAGE==0 ? 1 : 0)) * MAX_PAGE + 1;
-            int endPage = startPage + MAX_PAGE -1;
-            
-            
+
+            int startPage = ((pageNo / MAX_PAGE) - (pageNo % MAX_PAGE == 0 ? 1 : 0)) * MAX_PAGE + 1;
+            int endPage = startPage + MAX_PAGE - 1;
+
+
             endPage = Math.min(endPage, totalPage);
-            
+
             for (int i = startPage; i <= endPage; i++) {
                 if (i == pageNo) {
                     stringBuilder.append(i);
@@ -169,7 +211,7 @@ public class Pop3Agent {
                 stringBuilder.append("&gt;");
                 stringBuilder.append("&nbsp;");
                 stringBuilder.append("마지막페이지로");
-                
+
             } else {
                 stringBuilder.append("<a href=\"main_menu.jsp?pageNo=").append(pageNo + 1).append("\">&gt;</a>");
                 stringBuilder.append("&nbsp;");
@@ -177,7 +219,7 @@ public class Pop3Agent {
             }
         }
         return stringBuilder.toString();
-        
+
     }
 
     public void setPageNo(int pageNo) {
@@ -256,6 +298,10 @@ public class Pop3Agent {
 
     public void setUserid(String userid) {
         this.userid = userid;
+    }
+
+    public void setSearchKeyword(String searchKeyword) {
+        this.searchKeyword = searchKeyword;
     }
 }  // class Pop3Agent
 

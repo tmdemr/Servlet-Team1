@@ -206,6 +206,9 @@ public class UserDatabaseAgent {
         String sql = "DELETE FROM userinfo WHERE USERNAME = ?";
         String inboxDeleteSql = "DELETE FROM inbox WHERE repository_name = ?";
         String trashDeleteSql = "DELETE FROM trash WHERE repository_name = ?";
+        AddressBookAgent addressBookAgent = new AddressBookAgent();
+        addressBookAgent.setUserId(userId);
+        addressBookAgent.deleteAll();
         try (Connection connection = getConnection();
              PreparedStatement userInfoDeleteStatement = connection.prepareStatement(sql);
              PreparedStatement inboxDeleteStatement = connection.prepareStatement(inboxDeleteSql);

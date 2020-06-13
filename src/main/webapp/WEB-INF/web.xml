@@ -34,9 +34,10 @@
         <servlet-class>cse.maven_webmail.control.TrashHandler</servlet-class>
     </servlet>
     <servlet>
-        <servlet-class>cse.maven_webmail.control.AddressHandler</servlet-class>
         <servlet-name>AddressHandler</servlet-name>
+        <servlet-class>cse.maven_webmail.control.AddressHandler</servlet-class>
     </servlet>
+
     <servlet-mapping>
         <servlet-name>AddressHandler</servlet-name>
         <url-pattern>/address.do</url-pattern>
@@ -69,6 +70,9 @@
         <servlet-name>ReadMailHandler</servlet-name>
         <url-pattern>/ReadMail.do</url-pattern>
     </servlet-mapping>
+    <error-page>
+        <location>/errorPage.jsp</location>
+    </error-page>
     <session-config>
         <session-timeout>
             30

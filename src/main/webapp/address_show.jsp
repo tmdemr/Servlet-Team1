@@ -1,7 +1,6 @@
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="cse.maven_webmail.control.CommandType"%>
-<%@taglib tagdir="/WEB-INF/tags/" prefix="mytags"%>
+<%@ page import="cse.maven_webmail.control.CommandType" %>
+<%@taglib tagdir="/WEB-INF/tags/" prefix="mytags" %>
 <!DOCTYPE>
 <html lang="kr">
 <head>
@@ -18,8 +17,10 @@
 </div>
 
 <div id="main">
-    <mytags:addrbook addressDeleteMenu="<%=CommandType.DELETE_ADDRESS%>" addressChangeMenu="<%=CommandType.CHANGE_ADDRESS%>" addressAddMenu="<%=CommandType.ADD_ADDRESS%>" userName="${userid}" />
-        
+    <mytags:addrbook userName="${userid}" addressAddMenu="<%=CommandType.ADD_ADDRESS%>"
+                     addressDeleteMenu="<%=CommandType.DELETE_ADDRESS%>"
+                     addressChangeMenu="<%=CommandType.CHANGE_ADDRESS%>"
+                     deleteAllAddressMenu="<%=CommandType.DELETE_ALL_ADDRESS%>"/>
 </div>
 
 <jsp:include page="footer.jsp"/>

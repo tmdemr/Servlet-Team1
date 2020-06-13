@@ -34,6 +34,14 @@
 
 <div id="main">
     <table border="1">
+        <tr>
+            <th>No.</th>
+            <th>보낸 사람</th>
+            <th>제목</th>
+            <th>보낸 날짜</th>
+            <th>삭제</th>
+            <th>복구</th>
+        </tr>
         <c:forEach items="${trashAgent.results}" var="item">
             ${item}
         </c:forEach>

@@ -32,7 +32,7 @@ public class CommandType {
     public static final int ADD_ADDRESS = 68;
     public static final int CHANGE_ADDRESS = 69;
     public static final int DELETE_ADDRESS = 70;
-    
+    public static final int DELETE_ALL_ADDRESS = 71;
     public static final int LOGIN = 91;
     public static final int LOGOUT = 92;
 }

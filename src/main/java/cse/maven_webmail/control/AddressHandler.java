@@ -3,99 +3,133 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ch06_class;
+package cse.maven_webmail.control;
 
-import cse.maven_webmail.control.CommandType;
-import java.io.IOException;
-import java.io.PrintWriter;
-import static java.lang.System.out;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
+import cse.maven_webmail.model.AddressBookAgent;
+
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
-/**
- *
- * @author user1
- */
+
 public class AddressHandler extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
         int menu = Integer.parseInt(request.getParameter("menu"));
+
+        switch (menu) {
+            case CommandType.ADD_ADDRESS:
+                insert(request, response);
+                break;
+            case CommandType.DELETE_ADDRESS:
+                delete(request, response);
+                break;
+            case CommandType.CHANGE_ADDRESS:
+                update(request, response);
+                break;
+            case CommandType.DELETE_ALL_ADDRESS:
+                deleteAll(request, response);
+            default:
+                try (PrintWriter out = response.getWriter()) {
+                    out.println("없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?");
+                }
+                break;
+        }
+
+    }
+
+    private void deleteAll(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        AddressBookAgent addressBookAgent = new AddressBookAgent();
         try (PrintWriter out = response.getWriter()) {
-            switch(menu){
-                case CommandType.ADD_ADDRESS:
-                   
-                    // TODO
-                    break;
-                case CommandType.DELETE_ADDRESS:
-                    
-                    //TODO
-                    break;
-                case CommandType.CHANGE_ADDRESS:
-                    
-                    //TODO
-                    break;
-                default:
-                    //TODO
+            if (addressBookAgent.deleteAll()) {
+                response.sendRedirect("address_show.jsp");
+            } else {
+                out.println("주소록 삭제 중에 오류가 발생했습니다.");
             }
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    private void update(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        String email = request.getParameter("email");
+        String name = request.getParameter("name");
+        String phoneNumber = request.getParameter("phoneNumber");
+        String newEmail = request.getParameter("newEmail");
+        AddressBookAgent addressBookAgent = new AddressBookAgent();
+        addressBookAgent.setUserId(user);
+        addressBookAgent.setEmail(email);
+        addressBookAgent.setNickName(name);
+        addressBookAgent.setPhoneNumber(phoneNumber);
+        addressBookAgent.setNewEmail(newEmail);
+        try (PrintWriter out = response.getWriter()) {
+            if (addressBookAgent.update()) {
+                response.sendRedirect("address_show.jsp");
+            } else {
+                out.println("주소록 삭제 중에 오류가 발생했습니다.");
+            }
+        }
+    }
+
+    private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        String email = request.getParameter("email");
+        AddressBookAgent addressBookAgent = new AddressBookAgent();
+        addressBookAgent.setEmail(email);
+        addressBookAgent.setUserId(user);
+        try (PrintWriter out = response.getWriter()) {
+            if (addressBookAgent.delete()) {
+                response.sendRedirect("address_show.jsp");
+            } else {
+                out.println("주소록 삭제 중에 오류가 발생했습니다.");
+            }
+        }
+    }
+
+    private void insert(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        String name = request.getParameter("name");
+        String email = request.getParameter("email");
+        String phoneNumber = request.getParameter("phoneNumber");
+        AddressBookAgent addressBookAgent = new AddressBookAgent();
+        addressBookAgent.setUserId(user);
+        addressBookAgent.setNickName(name);
+        addressBookAgent.setEmail(email);
+        addressBookAgent.setPhoneNumber(phoneNumber);
+        try (PrintWriter out = response.getWriter()) {
+            if (addressBookAgent.insert()) {
+                response.sendRedirect("address_show.jsp");
+            } else {
+                out.println("주소록 추가 중에 오류가 발생했습니다.");
+            }
+        }
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
+
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }
