@@ -1,0 +1,121 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: UserDataBean</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.model</a> ]
+</div>
+
+<h1>Coverage Summary for Class: UserDataBean (cse.maven_webmail.model)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UserDataBean</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/ 4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/ 10)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package cse.maven_webmail.model;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;/**
+<i>4</i>&nbsp; * 유저 데이터 빈입니다.
+<i>5</i>&nbsp; */
+<i>6</i>&nbsp;public class UserDataBean {
+<i>7</i>&nbsp;    private String userId;
+<i>8</i>&nbsp;    private String result;
+<b class="fc"><i>9</i>&nbsp;    public UserDataBean() {</b>
+<i>10</i>&nbsp;        // 빈 생성자
+<b class="fc"><i>11</i>&nbsp;    }</b>
+<i>12</i>&nbsp;
+<i>13</i>&nbsp;    /**
+<i>14</i>&nbsp;     * 유저 아이디를 설정하고 해당 개인 정보를 찾습니다.
+<i>15</i>&nbsp;     * @param userId 유저 아이디
+<i>16</i>&nbsp;     */
+<i>17</i>&nbsp;    public void setUserId(String userId) {
+<b class="fc"><i>18</i>&nbsp;        this.userId = userId;</b>
+<b class="fc"><i>19</i>&nbsp;        findData();</b>
+<b class="fc"><i>20</i>&nbsp;    }</b>
+<i>21</i>&nbsp;
+<i>22</i>&nbsp;    /**
+<i>23</i>&nbsp;     * 데이터베이스 모델 객체를 생성하여 찾은 데이터를 result에 넣습니다.
+<i>24</i>&nbsp;     */
+<i>25</i>&nbsp;    public void findData(){
+<b class="fc"><i>26</i>&nbsp;        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();</b>
+<b class="fc"><i>27</i>&nbsp;        userDatabaseAgent.setUserId(userId);</b>
+<b class="fc"><i>28</i>&nbsp;        result = userDatabaseAgent.getUserData();</b>
+<b class="fc"><i>29</i>&nbsp;    }</b>
+<i>30</i>&nbsp;
+<i>31</i>&nbsp;    /**
+<i>32</i>&nbsp;     * 결과를 반환합니다.
+<i>33</i>&nbsp;     * @return 결과
+<i>34</i>&nbsp;     */
+<i>35</i>&nbsp;    public String getResult() {
+<b class="fc"><i>36</i>&nbsp;        return result;</b>
+<i>37</i>&nbsp;    }
+<i>38</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

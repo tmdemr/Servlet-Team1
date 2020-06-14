@@ -1,0 +1,172 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: MessageFormatter</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.model</a> ]
+</div>
+
+<h1>Coverage Summary for Class: MessageFormatter (cse.maven_webmail.model)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MessageFormatter</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/ 3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.5%
+  </span>
+  <span class="absValue">
+    (37/ 40)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/*
+<i>2</i>&nbsp; * To change this template, choose Tools | Templates
+<i>3</i>&nbsp; * and open the template in the editor.
+<i>4</i>&nbsp; */
+<i>5</i>&nbsp;package cse.maven_webmail.model;
+<i>6</i>&nbsp;
+<i>7</i>&nbsp;import cse.maven_webmail.control.CommandType;
+<i>8</i>&nbsp;
+<i>9</i>&nbsp;import javax.mail.Message;
+<i>10</i>&nbsp;
+<i>11</i>&nbsp;/**
+<i>12</i>&nbsp; * @author jongmin
+<i>13</i>&nbsp; */
+<i>14</i>&nbsp;public class MessageFormatter {
+<i>15</i>&nbsp;
+<i>16</i>&nbsp;    private final String userid;  // 파일 임시 저장 디렉토리 생성에 필요
+<i>17</i>&nbsp;
+<i>18</i>&nbsp;
+<i>19</i>&nbsp;
+<b class="fc"><i>20</i>&nbsp;    public MessageFormatter(String userid) {</b>
+<b class="fc"><i>21</i>&nbsp;        this.userid = userid;</b>
+<b class="fc"><i>22</i>&nbsp;    }</b>
+<i>23</i>&nbsp;
+<i>24</i>&nbsp;    /**
+<i>25</i>&nbsp;     * 메세지를 보여주는 테이블을 생성합니다.
+<i>26</i>&nbsp;     * @param messages 메세지객체들
+<i>27</i>&nbsp;     * @return 테이블화 된 String
+<i>28</i>&nbsp;     */
+<i>29</i>&nbsp;    public String getMessageTable(Message[] messages) {
+<b class="fc"><i>30</i>&nbsp;        StringBuilder buffer = new StringBuilder();</b>
+<i>31</i>&nbsp;        // 메시지 제목 보여주기
+<b class="fc"><i>32</i>&nbsp;        buffer.append(&quot;&lt;table&gt;&quot;);  // table start</b>
+<b class="fc"><i>33</i>&nbsp;        buffer.append(&quot;&lt;tr&gt; &quot;</b>
+<i>34</i>&nbsp;                + &quot; &lt;th&gt; No. &lt;/th&gt; &quot;
+<i>35</i>&nbsp;                + &quot; &lt;th&gt; 보낸 사람 &lt;/th&gt;&quot;
+<i>36</i>&nbsp;                + &quot; &lt;th&gt; 제목 &lt;/th&gt;     &quot;
+<i>37</i>&nbsp;                + &quot; &lt;th&gt; 보낸 날짜 &lt;/th&gt;   &quot;
+<i>38</i>&nbsp;                + &quot; &lt;th&gt; 삭제 &lt;/th&gt;   &quot;
+<i>39</i>&nbsp;                + &quot; &lt;/tr&gt;&quot;);
+<b class="fc"><i>40</i>&nbsp;        for (int i = messages.length-1; i &gt; -1; i--) {</b>
+<b class="fc"><i>41</i>&nbsp;            MessageParser parser = new MessageParser(messages[i], userid);</b>
+<b class="fc"><i>42</i>&nbsp;            parser.parse(false);  // envelope 정보만 필요</b>
+<i>43</i>&nbsp;            // 메시지 헤더 포맷
+<i>44</i>&nbsp;            // 추출한 정보를 출력 포맷 사용하여 스트링으로 만들기
+<b class="fc"><i>45</i>&nbsp;            buffer.append(&quot;&lt;tr&gt; &quot; + &quot; &lt;td id=\&quot;no\&quot;&gt;&quot;).append(messages[i].getMessageNumber()).append(&quot; &lt;/td&gt; &quot;)</b>
+<b class="fc"><i>46</i>&nbsp;                    .append(&quot; &lt;td id=\&quot;sender\&quot;&gt;&quot;).append(parser.getFromAddress())</b>
+<b class="fc"><i>47</i>&nbsp;                    .append(&quot;&lt;/td&gt;&quot;).append(&quot; &lt;td id=\&quot;subject\&quot;&gt; &quot;)</b>
+<b class="fc"><i>48</i>&nbsp;                    .append(&quot; &lt;a href=show_message.jsp?msgid=&quot;).append(messages[i].getMessageNumber())</b>
+<b class="fc"><i>49</i>&nbsp;                    .append(&quot; title=\&quot;메일 보기\&quot;&gt; &quot;).append(parser.getSubject())</b>
+<b class="fc"><i>50</i>&nbsp;                    .append(&quot;&lt;/a&gt; &lt;/td&gt;&quot;).append(&quot; &lt;td id=\&quot;date\&quot;&gt;&quot;).append(parser.getSentDate())</b>
+<b class="fc"><i>51</i>&nbsp;                    .append(&quot;&lt;/td&gt;&quot;).append(&quot; &lt;td id=delete&gt;&quot;).append(&quot;&lt;a href=ReadMail.do?menu=&quot;)</b>
+<b class="fc"><i>52</i>&nbsp;                    .append(CommandType.DELETE_MAIL_COMMAND).append(&quot;&amp;msgid=&quot;).append(messages[i].getMessageNumber())</b>
+<b class="fc"><i>53</i>&nbsp;                    .append(&quot;&gt; 삭제 &lt;/a&gt;&quot;).append(&quot;&lt;/td&gt;&quot;).append(&quot; &lt;/tr&gt;&quot;);</b>
+<i>54</i>&nbsp;        }
+<b class="fc"><i>55</i>&nbsp;        buffer.append(&quot;&lt;/table&gt;&quot;);</b>
+<b class="fc"><i>56</i>&nbsp;        return buffer.toString();</b>
+<i>57</i>&nbsp;    }
+<i>58</i>&nbsp;
+<i>59</i>&nbsp;    /**
+<i>60</i>&nbsp;     * 메세지 객체로부터 메세지를 사용자가 보기 좋게 보여주는 메소드입니다.
+<i>61</i>&nbsp;     * @param message 사용자에게 보여줄 메세지
+<i>62</i>&nbsp;     * @return 보기 좋게 다듬어진 메세지
+<i>63</i>&nbsp;     */
+<i>64</i>&nbsp;    public String getMessage(Message message) {
+<b class="fc"><i>65</i>&nbsp;        StringBuilder buffer = new StringBuilder();</b>
+<b class="fc"><i>66</i>&nbsp;        MessageParser parser = new MessageParser(message, userid);</b>
+<b class="fc"><i>67</i>&nbsp;        parser.parse(true);</b>
+<b class="fc"><i>68</i>&nbsp;        buffer.append(&quot;보낸 사람: &quot;).append(parser.getFromAddress()).append(&quot; &lt;br&gt;&quot;);</b>
+<b class="fc"><i>69</i>&nbsp;        buffer.append(&quot;받은 사람: &quot;).append(parser.getToAddress()).append(&quot; &lt;br&gt;&quot;);</b>
+<b class="fc"><i>70</i>&nbsp;        buffer.append(&quot;Cc &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; : &quot;).append(parser.getCcAddress()).append(&quot; &lt;br&gt;&quot;);</b>
+<b class="fc"><i>71</i>&nbsp;        buffer.append(&quot;보낸 날짜: &quot;).append(parser.getSentDate()).append(&quot; &lt;br&gt;&quot;);</b>
+<b class="fc"><i>72</i>&nbsp;        buffer.append(&quot;제 &amp;nbsp;&amp;nbsp;&amp;nbsp;  목: &quot;).append(parser.getSubject()).append(&quot; &lt;br&gt; &lt;hr&gt;&quot;);</b>
+<b class="fc"><i>73</i>&nbsp;        buffer.append(parser.getBody());</b>
+<b class="fc"><i>74</i>&nbsp;        String attachedFile = parser.getFileName();</b>
+<b class="pc"><i>75</i>&nbsp;        if (attachedFile != null) {</b>
+<b class="nc"><i>76</i>&nbsp;            buffer.append(&quot;&lt;br&gt; &lt;hr&gt; 첨부파일: &lt;a href=ReadMail.do?menu=&quot; + CommandType.DOWNLOAD_COMMAND + &quot;&amp;userid=&quot;)</b>
+<b class="nc"><i>77</i>&nbsp;                    .append(this.userid).append(&quot;&amp;filename=&quot;).append(attachedFile.replace(&quot; &quot;, &quot;%20&quot;))</b>
+<b class="nc"><i>78</i>&nbsp;                    .append(&quot; target=_top&gt; &quot;).append(attachedFile).append(&quot;&lt;/a&gt; &lt;br&gt;&quot;);</b>
+<i>79</i>&nbsp;        }
+<b class="fc"><i>80</i>&nbsp;        buffer.append(&quot;&lt;form action=\&quot;write_mail.jsp\&quot; method=\&quot;POST\&quot;&gt;   &quot;</b>
+<b class="fc"><i>81</i>&nbsp;                + &quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;fromAddress\&quot; value=\&quot;&quot; + parser.getFromAddress() + &quot;\&quot;/&gt;&quot;</b>
+<b class="fc"><i>82</i>&nbsp;                + &quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;toAddress\&quot; value=\&quot;&quot; + parser.getToAddress() + &quot;\&quot;/&gt;&quot;</b>
+<b class="fc"><i>83</i>&nbsp;                + &quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;subject\&quot; value=\&quot;&quot; + parser.getSubject() + &quot;\&quot;/&gt;&quot;</b>
+<b class="fc"><i>84</i>&nbsp;                + &quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;body\&quot; value=\&quot;&quot; + parser.getBody() + &quot;\&quot;/&gt;&quot;</b>
+<i>85</i>&nbsp;                + &quot;&lt;button type=\&quot;submit\&quot;&gt;답장하기&lt;/button&gt;&quot;
+<i>86</i>&nbsp;                + &quot;  &lt;/form&gt;&quot;);
+<b class="fc"><i>87</i>&nbsp;        return buffer.toString();</b>
+<i>88</i>&nbsp;    }
+<i>89</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

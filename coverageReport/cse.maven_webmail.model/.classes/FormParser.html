@@ -1,0 +1,222 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: FormParser</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.model</a> ]
+</div>
+
+<h1>Coverage Summary for Class: FormParser (cse.maven_webmail.model)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FormParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (14/ 16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.5%
+  </span>
+  <span class="absValue">
+    (57/ 63)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package cse.maven_webmail.model;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import org.apache.commons.fileupload.FileItem;
+<i>4</i>&nbsp;import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+<i>5</i>&nbsp;import org.apache.commons.fileupload.servlet.ServletFileUpload;
+<i>6</i>&nbsp;import org.slf4j.Logger;
+<i>7</i>&nbsp;import org.slf4j.LoggerFactory;
+<i>8</i>&nbsp;
+<i>9</i>&nbsp;import javax.servlet.http.HttpServletRequest;
+<i>10</i>&nbsp;import java.io.File;
+<i>11</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i>12</i>&nbsp;import java.util.List;
+<i>13</i>&nbsp;
+<i>14</i>&nbsp;/**
+<i>15</i>&nbsp; * 책임: enctype이 multipart/form-data인 HTML 폼에 있는 각 필드와 파일 정보 추출
+<i>16</i>&nbsp; *
+<i>17</i>&nbsp; * @author jongmin
+<i>18</i>&nbsp; */
+<i>19</i>&nbsp;public class FormParser {
+<b class="fc"><i>20</i>&nbsp;    private static final Logger logger = LoggerFactory.getLogger(FormParser.class);</b>
+<i>21</i>&nbsp;    private HttpServletRequest request;
+<b class="fc"><i>22</i>&nbsp;    private String toAddress = null;</b>
+<b class="fc"><i>23</i>&nbsp;    private String ccAddress = null;</b>
+<b class="fc"><i>24</i>&nbsp;    private String subject = null;</b>
+<b class="fc"><i>25</i>&nbsp;    private String body = null;</b>
+<b class="fc"><i>26</i>&nbsp;    private String fileName = null;</b>
+<i>27</i>&nbsp;    private static final String UPLOAD_TARGET_DIR = &quot;C:/temp/upload&quot;;
+<i>28</i>&nbsp;
+<b class="fc"><i>29</i>&nbsp;    public FormParser(HttpServletRequest request) {</b>
+<b class="fc"><i>30</i>&nbsp;        this.request = request;</b>
+<b class="fc"><i>31</i>&nbsp;    }</b>
+<i>32</i>&nbsp;
+<i>33</i>&nbsp;    public String getBody() {
+<b class="fc"><i>34</i>&nbsp;        return body;</b>
+<i>35</i>&nbsp;    }
+<i>36</i>&nbsp;
+<i>37</i>&nbsp;    public void setBody(String body) {
+<b class="fc"><i>38</i>&nbsp;        this.body = body;</b>
+<b class="fc"><i>39</i>&nbsp;    }</b>
+<i>40</i>&nbsp;
+<i>41</i>&nbsp;    public String getCcAddress() {
+<b class="fc"><i>42</i>&nbsp;        return ccAddress;</b>
+<i>43</i>&nbsp;    }
+<i>44</i>&nbsp;
+<i>45</i>&nbsp;    public void setCcAddress(String ccAddress) {
+<b class="fc"><i>46</i>&nbsp;        this.ccAddress = ccAddress;</b>
+<b class="fc"><i>47</i>&nbsp;    }</b>
+<i>48</i>&nbsp;
+<i>49</i>&nbsp;    public String getFileName() {
+<b class="fc"><i>50</i>&nbsp;        return fileName;</b>
+<i>51</i>&nbsp;    }
+<i>52</i>&nbsp;
+<i>53</i>&nbsp;    public void setFileName(String fileName) {
+<b class="fc"><i>54</i>&nbsp;        this.fileName = fileName;</b>
+<b class="fc"><i>55</i>&nbsp;    }</b>
+<i>56</i>&nbsp;
+<i>57</i>&nbsp;    public HttpServletRequest getRequest() {
+<b class="nc"><i>58</i>&nbsp;        return request;</b>
+<i>59</i>&nbsp;    }
+<i>60</i>&nbsp;
+<i>61</i>&nbsp;    public void setRequest(HttpServletRequest request) {
+<b class="nc"><i>62</i>&nbsp;        this.request = request;</b>
+<b class="nc"><i>63</i>&nbsp;    }</b>
+<i>64</i>&nbsp;
+<i>65</i>&nbsp;    public String getSubject() {
+<b class="fc"><i>66</i>&nbsp;        return subject;</b>
+<i>67</i>&nbsp;    }
+<i>68</i>&nbsp;
+<i>69</i>&nbsp;    public void setSubject(String subject) {
+<b class="fc"><i>70</i>&nbsp;        this.subject = subject;</b>
+<b class="fc"><i>71</i>&nbsp;    }</b>
+<i>72</i>&nbsp;
+<i>73</i>&nbsp;    public String getToAddress() {
+<b class="fc"><i>74</i>&nbsp;        return toAddress;</b>
+<i>75</i>&nbsp;    }
+<i>76</i>&nbsp;
+<i>77</i>&nbsp;    public void setToAddress(String toAddress) {
+<b class="fc"><i>78</i>&nbsp;        this.toAddress = toAddress;</b>
+<b class="fc"><i>79</i>&nbsp;    }</b>
+<i>80</i>&nbsp;
+<i>81</i>&nbsp;    private void checkFolder() {
+<b class="fc"><i>82</i>&nbsp;        File uploadTargetFolder = new File(UPLOAD_TARGET_DIR);</b>
+<b class="pc"><i>83</i>&nbsp;        if (!uploadTargetFolder.exists()) {</b>
+<b class="nc"><i>84</i>&nbsp;            uploadTargetFolder.mkdirs();</b>
+<i>85</i>&nbsp;        }
+<b class="fc"><i>86</i>&nbsp;    }</b>
+<i>87</i>&nbsp;
+<i>88</i>&nbsp;    /**
+<i>89</i>&nbsp;     * request를 파싱하는 메소드입니다.
+<i>90</i>&nbsp;     */
+<i>91</i>&nbsp;    public void parse() {
+<b class="fc"><i>92</i>&nbsp;        checkFolder(); // 폴더 없을 경우 만들게 추가했음 - 남영우</b>
+<i>93</i>&nbsp;        try {
+<b class="fc"><i>94</i>&nbsp;            request.setCharacterEncoding(StandardCharsets.UTF_8.name());</b>
+<i>95</i>&nbsp;
+<i>96</i>&nbsp;            // 1. 디스크 기반 파일 항목에 대한 팩토리 생성
+<b class="fc"><i>97</i>&nbsp;            DiskFileItemFactory diskFactory = new DiskFileItemFactory();</b>
+<i>98</i>&nbsp;            // 2. 팩토리 제한사항 설정
+<b class="fc"><i>99</i>&nbsp;            diskFactory.setSizeThreshold(10 * 1024 * 1024);</b>
+<b class="fc"><i>100</i>&nbsp;            diskFactory.setRepository(new File(UPLOAD_TARGET_DIR));</b>
+<i>101</i>&nbsp;            // 3. 파일 업로드 핸들러 생성
+<b class="fc"><i>102</i>&nbsp;            ServletFileUpload upload = new ServletFileUpload(diskFactory);</b>
+<i>103</i>&nbsp;
+<i>104</i>&nbsp;            // 4. request 객체 파싱
+<b class="fc"><i>105</i>&nbsp;            List&lt;FileItem&gt; fileItems = upload.parseRequest(request);</b>
+<b class="fc"><i>106</i>&nbsp;            for (FileItem fi : fileItems) {</b>
+<b class="fc"><i>107</i>&nbsp;                if (fi.isFormField()) {  // 5. 폼 필드 처리</b>
+<b class="fc"><i>108</i>&nbsp;                    String fieldName = fi.getFieldName();</b>
+<b class="fc"><i>109</i>&nbsp;                    String item = fi.getString(StandardCharsets.UTF_8.name());</b>
+<i>110</i>&nbsp;
+<b class="fc"><i>111</i>&nbsp;                    if (fieldName.equals(&quot;to&quot;)) {</b>
+<b class="fc"><i>112</i>&nbsp;                        setToAddress(item);  // 200102 LJM - @ 이후의 서버 주소 제거</b>
+<b class="fc"><i>113</i>&nbsp;                    } else if (fieldName.equals(&quot;cc&quot;)) {</b>
+<b class="fc"><i>114</i>&nbsp;                        setCcAddress(item);</b>
+<b class="fc"><i>115</i>&nbsp;                    } else if (fieldName.equals(&quot;subj&quot;)) {</b>
+<b class="fc"><i>116</i>&nbsp;                        setSubject(item);</b>
+<b class="pc"><i>117</i>&nbsp;                    } else if (fieldName.equals(&quot;body&quot;)) {</b>
+<b class="fc"><i>118</i>&nbsp;                        setBody(item);</b>
+<i>119</i>&nbsp;                    }
+<b class="fc"><i>120</i>&nbsp;                } else {  // 6. 첨부 파일 처리</b>
+<b class="pc"><i>121</i>&nbsp;                    if (!(fi.getName() == null || fi.getName().equals(&quot;&quot;))) {</b>
+<b class="fc"><i>122</i>&nbsp;                        String fieldName = fi.getFieldName();</b>
+<b class="fc"><i>123</i>&nbsp;                        logger.info(&quot;ATTACHED FILE : {} = {}&quot;, fieldName, fi.getName());</b>
+<i>124</i>&nbsp;
+<i>125</i>&nbsp;                        // 절대 경로 저장
+<b class="fc"><i>126</i>&nbsp;                        setFileName(UPLOAD_TARGET_DIR + File.separator + fi.getName());</b>
+<b class="fc"><i>127</i>&nbsp;                        File fn = new File(fileName);</b>
+<i>128</i>&nbsp;                        // upload 완료. 추후 메일 전송후 해당 파일을 삭제하도록 해야 함.
+<b class="pc"><i>129</i>&nbsp;                        if (fileName != null) {</b>
+<b class="fc"><i>130</i>&nbsp;                            fi.write(fn);</b>
+<i>131</i>&nbsp;                        }
+<i>132</i>&nbsp;                    }
+<i>133</i>&nbsp;                }
+<b class="fc"><i>134</i>&nbsp;            }</b>
+<b class="nc"><i>135</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i>136</i>&nbsp;            logger.error(&quot;FormParser.parse() : exception = {}&quot;, ex.getMessage());</b>
+<b class="fc"><i>137</i>&nbsp;        }</b>
+<b class="fc"><i>138</i>&nbsp;    }  // parse()</b>
+<i>139</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

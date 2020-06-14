@@ -1,0 +1,241 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: ReadMailHandler</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.control</a> ]
+</div>
+
+<h1>Coverage Summary for Class: ReadMailHandler (cse.maven_webmail.control)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ReadMailHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    62.5%
+  </span>
+  <span class="absValue">
+    (5/ 8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    42.2%
+  </span>
+  <span class="absValue">
+    (19/ 45)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package cse.maven_webmail.control;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import java.io.File;
+<i>4</i>&nbsp;import java.io.FileInputStream;
+<i>5</i>&nbsp;import java.io.IOException;
+<i>6</i>&nbsp;import java.io.PrintWriter;
+<i>7</i>&nbsp;import java.net.URLEncoder;
+<i>8</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i>9</i>&nbsp;import java.nio.file.Files;
+<i>10</i>&nbsp;import javax.servlet.ServletException;
+<i>11</i>&nbsp;import javax.servlet.ServletOutputStream;
+<i>12</i>&nbsp;import javax.servlet.http.HttpServlet;
+<i>13</i>&nbsp;import javax.servlet.http.HttpServletRequest;
+<i>14</i>&nbsp;import javax.servlet.http.HttpServletResponse;
+<i>15</i>&nbsp;import javax.servlet.http.HttpSession;
+<i>16</i>&nbsp;
+<i>17</i>&nbsp;import cse.maven_webmail.model.Pop3Agent;
+<i>18</i>&nbsp;import org.slf4j.Logger;
+<i>19</i>&nbsp;import org.slf4j.LoggerFactory;
+<i>20</i>&nbsp;
+<i>21</i>&nbsp;/**
+<i>22</i>&nbsp; * @author jongmin
+<i>23</i>&nbsp; */
+<b class="fc"><i>24</i>&nbsp;public class ReadMailHandler extends HttpServlet {</b>
+<b class="fc"><i>25</i>&nbsp;    private static final Logger logger = LoggerFactory.getLogger(ReadMailHandler.class);</b>
+<i>26</i>&nbsp;
+<i>27</i>&nbsp;    /**
+<i>28</i>&nbsp;     * 요청을 처리합니다.
+<i>29</i>&nbsp;     *
+<i>30</i>&nbsp;     * @param request  요청
+<i>31</i>&nbsp;     * @param response 응답
+<i>32</i>&nbsp;     * @throws IOException PrintWriter로 인해 발생할 수 있습니다.
+<i>33</i>&nbsp;     */
+<i>34</i>&nbsp;    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+<i>35</i>&nbsp;            throws IOException {
+<b class="fc"><i>36</i>&nbsp;        response.setContentType(&quot;text/html;charset=UTF-8&quot;);</b>
+<i>37</i>&nbsp;
+<b class="fc"><i>38</i>&nbsp;        request.setCharacterEncoding(StandardCharsets.UTF_8.name());</b>
+<b class="fc"><i>39</i>&nbsp;        int select = Integer.parseInt(request.getParameter(&quot;menu&quot;));</b>
+<i>40</i>&nbsp;
+<b class="pc"><i>41</i>&nbsp;        switch (select) {</b>
+<i>42</i>&nbsp;            case CommandType.DELETE_MAIL_COMMAND:
+<b class="fc"><i>43</i>&nbsp;                deleteMessage(request);</b>
+<b class="fc"><i>44</i>&nbsp;                response.sendRedirect(&quot;main_menu.jsp&quot;);</b>
+<b class="fc"><i>45</i>&nbsp;                break;</b>
+<i>46</i>&nbsp;
+<i>47</i>&nbsp;            case CommandType.DOWNLOAD_COMMAND: // 파일 다운로드 처리
+<b class="nc"><i>48</i>&nbsp;                download(request, response);</b>
+<b class="nc"><i>49</i>&nbsp;                break;</b>
+<i>50</i>&nbsp;
+<i>51</i>&nbsp;            default:
+<b class="nc"><i>52</i>&nbsp;                try (PrintWriter out = response.getWriter()) {</b>
+<b class="nc"><i>53</i>&nbsp;                    out.println(&quot;없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?&quot;);</b>
+<i>54</i>&nbsp;                }
+<i>55</i>&nbsp;                break;
+<i>56</i>&nbsp;
+<i>57</i>&nbsp;        }
+<b class="fc"><i>58</i>&nbsp;    }</b>
+<i>59</i>&nbsp;
+<i>60</i>&nbsp;    /**
+<i>61</i>&nbsp;     * 메일의 파일 다운로드를 처리합니다.
+<i>62</i>&nbsp;     *
+<i>63</i>&nbsp;     * @param request  요청
+<i>64</i>&nbsp;     * @param response 응답
+<i>65</i>&nbsp;     */
+<i>66</i>&nbsp;    private void download(HttpServletRequest request, HttpServletResponse response) {
+<b class="nc"><i>67</i>&nbsp;        response.setContentType(&quot;application/octet-stream&quot;);</b>
+<b class="nc"><i>68</i>&nbsp;        try (ServletOutputStream sos = response.getOutputStream()) {</b>
+<b class="nc"><i>69</i>&nbsp;            request.setCharacterEncoding(StandardCharsets.UTF_8.name());</b>
+<i>70</i>&nbsp;            // LJM 041203 - 아래와 같이 해서 한글파일명 제대로 인식되는 것 확인했음.
+<b class="nc"><i>71</i>&nbsp;            String fileName = request.getParameter(&quot;filename&quot;);</b>
+<b class="nc"><i>72</i>&nbsp;            logger.info(&quot;&gt;&gt;&gt;&gt;&gt;&gt; DOWNLOAD: file name = {}&quot;, fileName);</b>
+<i>73</i>&nbsp;            // fileName에 있는 &#39; &#39;는 &#39;+&#39;가 파라미터로 전송되는 과정에서 변한 것이므로
+<i>74</i>&nbsp;            // 다시 변환시켜줌.
+<b class="nc"><i>75</i>&nbsp;            String userid = request.getParameter(&quot;userid&quot;);</b>
+<i>76</i>&nbsp;            // download할 파일 읽기
+<i>77</i>&nbsp;            // LJM 090430 : 수정해야 할 부분 - start ------------------
+<i>78</i>&nbsp;            // 리눅스 서버 사용시
+<i>79</i>&nbsp;
+<i>80</i>&nbsp;            // 윈도우즈 환경 사용시
+<b class="nc"><i>81</i>&nbsp;            String downloadDir = &quot;C:/temp/download/&quot;;</b>
+<i>82</i>&nbsp;            // LJM 090430 : 수정해야 할 부분 - end   ------------------
+<b class="nc"><i>83</i>&nbsp;            response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot;</b>
+<b class="nc"><i>84</i>&nbsp;                    + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + &quot;;&quot;);</b>
+<i>85</i>&nbsp;
+<b class="nc"><i>86</i>&nbsp;            File f = new File(downloadDir + File.separator + userid + File.separator + fileName);</b>
+<i>87</i>&nbsp;            byte[] b;
+<i>88</i>&nbsp;            // try-with-resource 문은 fis를 명시적으로 close해 주지 않아도 됨.
+<b class="nc"><i>89</i>&nbsp;            try (FileInputStream fis = new FileInputStream(f)) {</b>
+<b class="nc"><i>90</i>&nbsp;                b = fis.readAllBytes();</b>
+<i>91</i>&nbsp;            }
+<i>92</i>&nbsp;            // 다운로드
+<b class="nc"><i>93</i>&nbsp;            sos.write(b);</b>
+<b class="nc"><i>94</i>&nbsp;            sos.flush();</b>
+<b class="nc"><i>95</i>&nbsp;            Files.delete(f.toPath());</b>
+<b class="nc"><i>96</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i>97</i>&nbsp;            logger.error(&quot;====== DOWNLOAD exception : {}&quot;, ex.getMessage());</b>
+<b class="nc"><i>98</i>&nbsp;        }</b>
+<b class="nc"><i>99</i>&nbsp;    }</b>
+<i>100</i>&nbsp;
+<i>101</i>&nbsp;    /**
+<i>102</i>&nbsp;     * 메일을 삭제합니다.
+<i>103</i>&nbsp;     *
+<i>104</i>&nbsp;     * @param request 요청
+<i>105</i>&nbsp;     * @return 삭제 성공여부
+<i>106</i>&nbsp;     */
+<i>107</i>&nbsp;    private boolean deleteMessage(HttpServletRequest request) {
+<b class="fc"><i>108</i>&nbsp;        int msgid = Integer.parseInt(request.getParameter(&quot;msgid&quot;));</b>
+<i>109</i>&nbsp;
+<b class="fc"><i>110</i>&nbsp;        HttpSession httpSession = request.getSession();</b>
+<b class="fc"><i>111</i>&nbsp;        String host = (String) httpSession.getAttribute(&quot;host&quot;);</b>
+<b class="fc"><i>112</i>&nbsp;        String userid = (String) httpSession.getAttribute(&quot;userid&quot;);</b>
+<b class="fc"><i>113</i>&nbsp;        String password = (String) httpSession.getAttribute(&quot;password&quot;);</b>
+<i>114</i>&nbsp;
+<b class="fc"><i>115</i>&nbsp;        Pop3Agent pop3 = new Pop3Agent(host, userid, password);</b>
+<b class="fc"><i>116</i>&nbsp;        return pop3.deleteMessage(msgid, true);</b>
+<i>117</i>&nbsp;    }
+<i>118</i>&nbsp;
+<i>119</i>&nbsp;    // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;HttpServlet methods. Click on the + sign on the left to edit the code.&quot;&gt;
+<i>120</i>&nbsp;
+<i>121</i>&nbsp;    /**
+<i>122</i>&nbsp;     * Handles the HTTP &lt;code&gt;GET&lt;/code&gt; method.
+<i>123</i>&nbsp;     *
+<i>124</i>&nbsp;     * @param request  servlet request
+<i>125</i>&nbsp;     * @param response servlet response
+<i>126</i>&nbsp;     * @throws ServletException if a servlet-specific error occurs
+<i>127</i>&nbsp;     * @throws IOException      if an I/O error occurs
+<i>128</i>&nbsp;     */
+<i>129</i>&nbsp;    @Override
+<i>130</i>&nbsp;    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+<i>131</i>&nbsp;            throws ServletException, IOException {
+<b class="fc"><i>132</i>&nbsp;        processRequest(request, response);</b>
+<b class="fc"><i>133</i>&nbsp;    }</b>
+<i>134</i>&nbsp;
+<i>135</i>&nbsp;    /**
+<i>136</i>&nbsp;     * Handles the HTTP &lt;code&gt;POST&lt;/code&gt; method.
+<i>137</i>&nbsp;     *
+<i>138</i>&nbsp;     * @param request  servlet request
+<i>139</i>&nbsp;     * @param response servlet response
+<i>140</i>&nbsp;     * @throws ServletException if a servlet-specific error occurs
+<i>141</i>&nbsp;     * @throws IOException      if an I/O error occurs
+<i>142</i>&nbsp;     */
+<i>143</i>&nbsp;    @Override
+<i>144</i>&nbsp;    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+<i>145</i>&nbsp;            throws ServletException, IOException {
+<b class="nc"><i>146</i>&nbsp;        processRequest(request, response);</b>
+<b class="nc"><i>147</i>&nbsp;    }</b>
+<i>148</i>&nbsp;
+<i>149</i>&nbsp;    /**
+<i>150</i>&nbsp;     * Returns a short description of the servlet.
+<i>151</i>&nbsp;     *
+<i>152</i>&nbsp;     * @return a String containing servlet description
+<i>153</i>&nbsp;     */
+<i>154</i>&nbsp;    @Override
+<i>155</i>&nbsp;    public String getServletInfo() {
+<b class="nc"><i>156</i>&nbsp;        return &quot;Short description&quot;;</b>
+<i>157</i>&nbsp;    }// &lt;/editor-fold&gt;
+<i>158</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

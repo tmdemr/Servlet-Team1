@@ -1,0 +1,257 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: AddressHandler</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.control</a> ]
+</div>
+
+<h1>Coverage Summary for Class: AddressHandler (cse.maven_webmail.control)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AddressHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    77.8%
+  </span>
+  <span class="absValue">
+    (7/ 9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87%
+  </span>
+  <span class="absValue">
+    (60/ 69)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/*
+<i>2</i>&nbsp; * To change this license header, choose License Headers in Project Properties.
+<i>3</i>&nbsp; * To change this template file, choose Tools | Templates
+<i>4</i>&nbsp; * and open the template in the editor.
+<i>5</i>&nbsp; */
+<i>6</i>&nbsp;package cse.maven_webmail.control;
+<i>7</i>&nbsp;
+<i>8</i>&nbsp;import cse.maven_webmail.model.AddressBookAgent;
+<i>9</i>&nbsp;
+<i>10</i>&nbsp;import javax.servlet.ServletException;
+<i>11</i>&nbsp;import javax.servlet.http.HttpServlet;
+<i>12</i>&nbsp;import javax.servlet.http.HttpServletRequest;
+<i>13</i>&nbsp;import javax.servlet.http.HttpServletResponse;
+<i>14</i>&nbsp;import java.io.IOException;
+<i>15</i>&nbsp;import java.io.PrintWriter;
+<i>16</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i>17</i>&nbsp;
+<i>18</i>&nbsp;/**
+<i>19</i>&nbsp; * 주소록 핸들러로서 주소록 관련 제어를 수행합니다.
+<i>20</i>&nbsp; * 실제 삽입과 수정과 삭제는 AddressBookAgent에서 일어납니다.
+<i>21</i>&nbsp; * @see AddressBookAgent
+<i>22</i>&nbsp; * @author 박지율
+<i>23</i>&nbsp; */
+<b class="fc"><i>24</i>&nbsp;public class AddressHandler extends HttpServlet {</b>
+<i>25</i>&nbsp;    private static final String SEND_REDIRECT_URL = &quot;address_show.jsp&quot;;
+<i>26</i>&nbsp;    private static final String EMAIL = &quot;email&quot;;
+<i>27</i>&nbsp;
+<i>28</i>&nbsp;    /**
+<i>29</i>&nbsp;     * 요청을 처리합니다.
+<i>30</i>&nbsp;     * @param request 요청
+<i>31</i>&nbsp;     * @param response 응답
+<i>32</i>&nbsp;     * @throws IOException PrintWriter로 인해 발생할 수 있습니다.
+<i>33</i>&nbsp;     */
+<i>34</i>&nbsp;    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+<i>35</i>&nbsp;            throws IOException {
+<b class="fc"><i>36</i>&nbsp;        response.setContentType(&quot;text/html;charset=UTF-8&quot;);</b>
+<b class="fc"><i>37</i>&nbsp;        request.setCharacterEncoding(StandardCharsets.UTF_8.name());</b>
+<b class="fc"><i>38</i>&nbsp;        int menu = Integer.parseInt(request.getParameter(&quot;menu&quot;));</b>
+<i>39</i>&nbsp;
+<b class="pc"><i>40</i>&nbsp;        switch (menu) {</b>
+<i>41</i>&nbsp;            case CommandType.ADD_ADDRESS:
+<b class="fc"><i>42</i>&nbsp;                insert(request, response);</b>
+<b class="fc"><i>43</i>&nbsp;                break;</b>
+<i>44</i>&nbsp;            case CommandType.DELETE_ADDRESS:
+<b class="fc"><i>45</i>&nbsp;                delete(request, response);</b>
+<b class="fc"><i>46</i>&nbsp;                break;</b>
+<i>47</i>&nbsp;            case CommandType.CHANGE_ADDRESS:
+<b class="fc"><i>48</i>&nbsp;                update(request, response);</b>
+<b class="fc"><i>49</i>&nbsp;                break;</b>
+<i>50</i>&nbsp;            case CommandType.DELETE_ALL_ADDRESS:
+<b class="fc"><i>51</i>&nbsp;                deleteAll(request, response);</b>
+<b class="fc"><i>52</i>&nbsp;                break;</b>
+<i>53</i>&nbsp;            default:
+<b class="nc"><i>54</i>&nbsp;                try (PrintWriter out = response.getWriter()) {</b>
+<b class="nc"><i>55</i>&nbsp;                    out.println(&quot;없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?&quot;);</b>
+<i>56</i>&nbsp;                }
+<i>57</i>&nbsp;                break;
+<i>58</i>&nbsp;        }
+<i>59</i>&nbsp;
+<b class="fc"><i>60</i>&nbsp;    }</b>
+<i>61</i>&nbsp;
+<i>62</i>&nbsp;    /**
+<i>63</i>&nbsp;     * 모든 주소록을 삭제하는 메소드입니다.
+<i>64</i>&nbsp;     * @param request 요청
+<i>65</i>&nbsp;     * @param response 응답
+<i>66</i>&nbsp;     * @throws IOException PrintWriter로 인해 IOException이 발생할 수 있습니다.
+<i>67</i>&nbsp;     */
+<i>68</i>&nbsp;    private void deleteAll(HttpServletRequest request, HttpServletResponse response) throws IOException {
+<b class="fc"><i>69</i>&nbsp;        String user = request.getParameter(&quot;user&quot;);</b>
+<b class="fc"><i>70</i>&nbsp;        AddressBookAgent addressBookAgent = new AddressBookAgent();</b>
+<b class="fc"><i>71</i>&nbsp;        addressBookAgent.setUserId(user);</b>
+<b class="fc"><i>72</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="pc"><i>73</i>&nbsp;            if (addressBookAgent.deleteAll()) {</b>
+<b class="fc"><i>74</i>&nbsp;                response.sendRedirect(SEND_REDIRECT_URL);</b>
+<i>75</i>&nbsp;            } else {
+<b class="nc"><i>76</i>&nbsp;                out.println(&quot;주소록 삭제 중에 오류가 발생했습니다.&quot;);</b>
+<i>77</i>&nbsp;            }
+<i>78</i>&nbsp;        }
+<b class="fc"><i>79</i>&nbsp;    }</b>
+<i>80</i>&nbsp;
+<i>81</i>&nbsp;    /**
+<i>82</i>&nbsp;     * 주소록을 변경하는 메소드입니다.
+<i>83</i>&nbsp;     * @param request 요청
+<i>84</i>&nbsp;     * @param response 응답
+<i>85</i>&nbsp;     * @throws IOException PrintWriter로 인해 IOException이 발생할 수 있습니다.
+<i>86</i>&nbsp;     */
+<i>87</i>&nbsp;    private void update(HttpServletRequest request, HttpServletResponse response) throws IOException {
+<b class="fc"><i>88</i>&nbsp;        String user = request.getParameter(&quot;user&quot;);</b>
+<b class="fc"><i>89</i>&nbsp;        String email = request.getParameter(EMAIL);</b>
+<b class="fc"><i>90</i>&nbsp;        String name = request.getParameter(&quot;name&quot;);</b>
+<b class="fc"><i>91</i>&nbsp;        String phoneNumber = request.getParameter(&quot;phoneNumber&quot;);</b>
+<b class="fc"><i>92</i>&nbsp;        String newEmail = request.getParameter(&quot;newEmail&quot;);</b>
+<b class="fc"><i>93</i>&nbsp;        AddressBookAgent addressBookAgent = new AddressBookAgent();</b>
+<b class="fc"><i>94</i>&nbsp;        addressBookAgent.setUserId(user);</b>
+<b class="fc"><i>95</i>&nbsp;        addressBookAgent.setEmail(email);</b>
+<b class="fc"><i>96</i>&nbsp;        addressBookAgent.setNickName(name);</b>
+<b class="fc"><i>97</i>&nbsp;        addressBookAgent.setPhoneNumber(phoneNumber);</b>
+<b class="fc"><i>98</i>&nbsp;        addressBookAgent.setNewEmail(newEmail);</b>
+<b class="fc"><i>99</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="pc"><i>100</i>&nbsp;            if (addressBookAgent.update()) {</b>
+<b class="fc"><i>101</i>&nbsp;                response.sendRedirect(SEND_REDIRECT_URL);</b>
+<i>102</i>&nbsp;            } else {
+<b class="nc"><i>103</i>&nbsp;                out.println(&quot;주소록 수정 중에 오류가 발생했습니다.&quot;);</b>
+<i>104</i>&nbsp;            }
+<i>105</i>&nbsp;        }
+<b class="fc"><i>106</i>&nbsp;    }</b>
+<i>107</i>&nbsp;
+<i>108</i>&nbsp;    /**
+<i>109</i>&nbsp;     * 주소록을 하나 삭제하는 메소드입니다.
+<i>110</i>&nbsp;     * @param request 요청
+<i>111</i>&nbsp;     * @param response 응답
+<i>112</i>&nbsp;     * @throws IOException PrintWriter로 인해 IOException이 발생할 수 있습니다.
+<i>113</i>&nbsp;     */
+<i>114</i>&nbsp;    private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+<b class="fc"><i>115</i>&nbsp;        String user = request.getParameter(&quot;user&quot;);</b>
+<b class="fc"><i>116</i>&nbsp;        String email = request.getParameter(EMAIL);</b>
+<b class="fc"><i>117</i>&nbsp;        AddressBookAgent addressBookAgent = new AddressBookAgent();</b>
+<b class="fc"><i>118</i>&nbsp;        addressBookAgent.setEmail(email);</b>
+<b class="fc"><i>119</i>&nbsp;        addressBookAgent.setUserId(user);</b>
+<b class="fc"><i>120</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="pc"><i>121</i>&nbsp;            if (addressBookAgent.delete()) {</b>
+<b class="fc"><i>122</i>&nbsp;                response.sendRedirect(SEND_REDIRECT_URL);</b>
+<i>123</i>&nbsp;            } else {
+<b class="nc"><i>124</i>&nbsp;                out.println(&quot;주소록 삭제 중에 오류가 발생했습니다.&quot;);</b>
+<i>125</i>&nbsp;            }
+<i>126</i>&nbsp;        }
+<b class="fc"><i>127</i>&nbsp;    }</b>
+<i>128</i>&nbsp;
+<i>129</i>&nbsp;    /**
+<i>130</i>&nbsp;     * 주소록을 삽입하는 메소드입니다.
+<i>131</i>&nbsp;     * @param request 요청
+<i>132</i>&nbsp;     * @param response 응답
+<i>133</i>&nbsp;     * @throws IOException PrintWriter로 인해 IOException이 발생할 수 있습니다.
+<i>134</i>&nbsp;     */
+<i>135</i>&nbsp;    private void insert(HttpServletRequest request, HttpServletResponse response) throws IOException {
+<b class="fc"><i>136</i>&nbsp;        String user = request.getParameter(&quot;user&quot;);</b>
+<b class="fc"><i>137</i>&nbsp;        String name = request.getParameter(&quot;name&quot;);</b>
+<b class="fc"><i>138</i>&nbsp;        String email = request.getParameter(EMAIL);</b>
+<b class="fc"><i>139</i>&nbsp;        String phoneNumber = request.getParameter(&quot;phoneNumber&quot;);</b>
+<b class="fc"><i>140</i>&nbsp;        AddressBookAgent addressBookAgent = new AddressBookAgent();</b>
+<b class="fc"><i>141</i>&nbsp;        addressBookAgent.setUserId(user);</b>
+<b class="fc"><i>142</i>&nbsp;        addressBookAgent.setNickName(name);</b>
+<b class="fc"><i>143</i>&nbsp;        addressBookAgent.setEmail(email);</b>
+<b class="fc"><i>144</i>&nbsp;        addressBookAgent.setPhoneNumber(phoneNumber);</b>
+<b class="fc"><i>145</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="pc"><i>146</i>&nbsp;            if (addressBookAgent.insert()) {</b>
+<b class="fc"><i>147</i>&nbsp;                response.sendRedirect(SEND_REDIRECT_URL);</b>
+<i>148</i>&nbsp;            } else {
+<b class="nc"><i>149</i>&nbsp;                out.println(&quot;주소록 추가 중에 오류가 발생했습니다.&quot;);</b>
+<i>150</i>&nbsp;            }
+<i>151</i>&nbsp;        }
+<b class="fc"><i>152</i>&nbsp;    }</b>
+<i>153</i>&nbsp;
+<i>154</i>&nbsp;
+<i>155</i>&nbsp;    @Override
+<i>156</i>&nbsp;    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+<i>157</i>&nbsp;            throws IOException {
+<b class="nc"><i>158</i>&nbsp;        processRequest(request, response);</b>
+<b class="nc"><i>159</i>&nbsp;    }</b>
+<i>160</i>&nbsp;
+<i>161</i>&nbsp;
+<i>162</i>&nbsp;    @Override
+<i>163</i>&nbsp;    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+<i>164</i>&nbsp;            throws ServletException, IOException {
+<b class="fc"><i>165</i>&nbsp;        processRequest(request, response);</b>
+<b class="fc"><i>166</i>&nbsp;    }</b>
+<i>167</i>&nbsp;
+<i>168</i>&nbsp;
+<i>169</i>&nbsp;    @Override
+<i>170</i>&nbsp;    public String getServletInfo() {
+<b class="nc"><i>171</i>&nbsp;        return &quot;Short description&quot;;</b>
+<i>172</i>&nbsp;    }
+<i>173</i>&nbsp;
+<i>174</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

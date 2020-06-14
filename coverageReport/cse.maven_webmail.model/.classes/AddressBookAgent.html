@@ -1,0 +1,232 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: AddressBookAgent</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.model</a> ]
+</div>
+
+<h1>Coverage Summary for Class: AddressBookAgent (cse.maven_webmail.model)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AddressBookAgent</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (12/ 12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    82.6%
+  </span>
+  <span class="absValue">
+    (57/ 69)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package cse.maven_webmail.model;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import org.slf4j.Logger;
+<i>4</i>&nbsp;import org.slf4j.LoggerFactory;
+<i>5</i>&nbsp;
+<i>6</i>&nbsp;import javax.naming.NamingException;
+<i>7</i>&nbsp;import java.sql.Connection;
+<i>8</i>&nbsp;import java.sql.PreparedStatement;
+<i>9</i>&nbsp;import java.sql.SQLException;
+<i>10</i>&nbsp;import java.util.Date;
+<i>11</i>&nbsp;
+<i>12</i>&nbsp;/**
+<i>13</i>&nbsp; * 주소록의 데이터베이스를 관리하는 모델입니다.
+<i>14</i>&nbsp; * @author 박지율
+<i>15</i>&nbsp; */
+<i>16</i>&nbsp;public class AddressBookAgent {
+<b class="fc"><i>17</i>&nbsp;    private static final Logger logger = LoggerFactory.getLogger(AddressBookAgent.class);</b>
+<i>18</i>&nbsp;    private String userId;
+<i>19</i>&nbsp;    private String nickName;
+<i>20</i>&nbsp;    private String email;
+<i>21</i>&nbsp;    private String phoneNumber;
+<i>22</i>&nbsp;    private String newEmail;
+<i>23</i>&nbsp;
+<i>24</i>&nbsp;
+<i>25</i>&nbsp;    public void setNewEmail(String newEmail) {
+<b class="fc"><i>26</i>&nbsp;        this.newEmail = newEmail;</b>
+<b class="fc"><i>27</i>&nbsp;    }</b>
+<i>28</i>&nbsp;
+<b class="fc"><i>29</i>&nbsp;    public AddressBookAgent() {</b>
+<i>30</i>&nbsp;        //빈 생성자
+<b class="fc"><i>31</i>&nbsp;    }</b>
+<i>32</i>&nbsp;
+<i>33</i>&nbsp;    /**
+<i>34</i>&nbsp;     * Datebase 연결을 반환합니다.
+<i>35</i>&nbsp;     * @return 데이터베이스 연결
+<i>36</i>&nbsp;     * @throws NamingException DBCP 실패시 반환됩니다.
+<i>37</i>&nbsp;     * @throws SQLException SQL 오류
+<i>38</i>&nbsp;     */
+<i>39</i>&nbsp;    private Connection getConnection() throws NamingException, SQLException {
+<b class="fc"><i>40</i>&nbsp;        String name = &quot;java:/comp/env/jdbc/JamesWebmail&quot;;</b>
+<b class="fc"><i>41</i>&nbsp;        javax.naming.Context context = new javax.naming.InitialContext();</b>
+<b class="fc"><i>42</i>&nbsp;        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);</b>
+<b class="fc"><i>43</i>&nbsp;        return dataSource.getConnection();</b>
+<i>44</i>&nbsp;    }
+<i>45</i>&nbsp;
+<i>46</i>&nbsp;    /**
+<i>47</i>&nbsp;     * 자신이 가진 주소록을 모두 삭제하는 메소드입니다.
+<i>48</i>&nbsp;     * @return sql 성공 여부
+<i>49</i>&nbsp;     */
+<i>50</i>&nbsp;    public boolean deleteAll() {
+<i>51</i>&nbsp;        boolean status;
+<b class="fc"><i>52</i>&nbsp;        String sql = &quot;DELETE FROM ADDRESSBOOK WHERE userid=?&quot;;</b>
+<b class="fc"><i>53</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>54</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(sql);</b>
+<i>55</i>&nbsp;        ) {
+<b class="fc"><i>56</i>&nbsp;            preparedStatement.setString(1, userId);</b>
+<b class="fc"><i>57</i>&nbsp;            preparedStatement.executeUpdate();</b>
+<b class="fc"><i>58</i>&nbsp;            status = true;</b>
+<b class="nc"><i>59</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>60</i>&nbsp;            status = false;</b>
+<b class="nc"><i>61</i>&nbsp;            logger.error(new Date() + &quot; : &quot; + throwables.getMessage());</b>
+<b class="fc"><i>62</i>&nbsp;        }</b>
+<b class="fc"><i>63</i>&nbsp;        return status;</b>
+<i>64</i>&nbsp;    }
+<i>65</i>&nbsp;
+<i>66</i>&nbsp;    /**
+<i>67</i>&nbsp;     * 주소록을 하나 삭제하는 메소드입니다.
+<i>68</i>&nbsp;     * @return sql 성공 여부
+<i>69</i>&nbsp;     */
+<i>70</i>&nbsp;    public boolean delete() {
+<i>71</i>&nbsp;        boolean status;
+<b class="fc"><i>72</i>&nbsp;        String sql = &quot;DELETE FROM ADDRESSBOOK WHERE userid=? AND email=?&quot;;</b>
+<b class="fc"><i>73</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>74</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(sql);</b>
+<i>75</i>&nbsp;        ) {
+<b class="fc"><i>76</i>&nbsp;            preparedStatement.setString(1, userId);</b>
+<b class="fc"><i>77</i>&nbsp;            preparedStatement.setString(2, email);</b>
+<b class="fc"><i>78</i>&nbsp;            int rows = preparedStatement.executeUpdate();</b>
+<b class="pc"><i>79</i>&nbsp;            status = rows == 1;</b>
+<b class="nc"><i>80</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>81</i>&nbsp;            status = false;</b>
+<b class="nc"><i>82</i>&nbsp;            logger.error(new Date() + &quot; : &quot; + throwables.getMessage());</b>
+<b class="fc"><i>83</i>&nbsp;        }</b>
+<b class="fc"><i>84</i>&nbsp;        return status;</b>
+<i>85</i>&nbsp;    }
+<i>86</i>&nbsp;
+<i>87</i>&nbsp;    /**
+<i>88</i>&nbsp;     * 자신이 가진 주소록을 수정하는 메소드입니다.
+<i>89</i>&nbsp;     * @return sql 성공 여부
+<i>90</i>&nbsp;     */
+<i>91</i>&nbsp;    public boolean update() {
+<i>92</i>&nbsp;        boolean status;
+<b class="fc"><i>93</i>&nbsp;        String sql = &quot;UPDATE ADDRESSBOOK SET nickname=?, email=?, phoneNumber=? WHERE userid=? AND email=?&quot;;</b>
+<b class="fc"><i>94</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>95</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(sql);</b>
+<i>96</i>&nbsp;        ) {
+<b class="fc"><i>97</i>&nbsp;            preparedStatement.setString(1, nickName);</b>
+<b class="fc"><i>98</i>&nbsp;            preparedStatement.setString(2, newEmail);</b>
+<b class="fc"><i>99</i>&nbsp;            preparedStatement.setString(3, phoneNumber);</b>
+<b class="fc"><i>100</i>&nbsp;            preparedStatement.setString(4, userId);</b>
+<b class="fc"><i>101</i>&nbsp;            preparedStatement.setString(5, email);</b>
+<b class="fc"><i>102</i>&nbsp;            int rows = preparedStatement.executeUpdate();</b>
+<b class="pc"><i>103</i>&nbsp;            status = rows == 1;</b>
+<b class="nc"><i>104</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>105</i>&nbsp;            status = false;</b>
+<b class="nc"><i>106</i>&nbsp;            logger.error(new Date() + &quot; : &quot; + throwables.getMessage());</b>
+<b class="fc"><i>107</i>&nbsp;        }</b>
+<b class="fc"><i>108</i>&nbsp;        return status;</b>
+<i>109</i>&nbsp;    }
+<i>110</i>&nbsp;
+<i>111</i>&nbsp;    /**
+<i>112</i>&nbsp;     * 주소록을 삽입하는 메소드입니다.
+<i>113</i>&nbsp;     * @return 삽입 성공 여부
+<i>114</i>&nbsp;     */
+<i>115</i>&nbsp;    public boolean insert() {
+<i>116</i>&nbsp;        boolean status;
+<b class="fc"><i>117</i>&nbsp;        String sql = &quot;INSERT INTO ADDRESSBOOK(userid, nickname, email, phoneNumber) VALUES(?, ?, ?, ?)&quot;;</b>
+<b class="fc"><i>118</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>119</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(sql);</b>
+<i>120</i>&nbsp;        ) {
+<b class="fc"><i>121</i>&nbsp;            preparedStatement.setString(1, userId);</b>
+<b class="fc"><i>122</i>&nbsp;            preparedStatement.setString(2, nickName);</b>
+<b class="fc"><i>123</i>&nbsp;            preparedStatement.setString(3, email);</b>
+<b class="fc"><i>124</i>&nbsp;            preparedStatement.setString(4, phoneNumber);</b>
+<b class="fc"><i>125</i>&nbsp;            int rows = preparedStatement.executeUpdate();</b>
+<b class="pc"><i>126</i>&nbsp;            status = rows == 1;</b>
+<b class="nc"><i>127</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>128</i>&nbsp;            status = false;</b>
+<b class="nc"><i>129</i>&nbsp;            logger.error(new Date() + &quot; : &quot; + throwables.getMessage());</b>
+<b class="fc"><i>130</i>&nbsp;        }</b>
+<b class="fc"><i>131</i>&nbsp;        return status;</b>
+<i>132</i>&nbsp;    }
+<i>133</i>&nbsp;
+<i>134</i>&nbsp;    public void setEmail(String email) {
+<b class="fc"><i>135</i>&nbsp;        this.email = email;</b>
+<b class="fc"><i>136</i>&nbsp;    }</b>
+<i>137</i>&nbsp;
+<i>138</i>&nbsp;    public void setNickName(String nickName) {
+<b class="fc"><i>139</i>&nbsp;        this.nickName = nickName;</b>
+<b class="fc"><i>140</i>&nbsp;    }</b>
+<i>141</i>&nbsp;
+<i>142</i>&nbsp;    public void setUserId(String userId) {
+<b class="fc"><i>143</i>&nbsp;        this.userId = userId;</b>
+<b class="fc"><i>144</i>&nbsp;    }</b>
+<i>145</i>&nbsp;
+<i>146</i>&nbsp;    public void setPhoneNumber(String phoneNumber) {
+<b class="fc"><i>147</i>&nbsp;        this.phoneNumber = phoneNumber;</b>
+<b class="fc"><i>148</i>&nbsp;    }</b>
+<i>149</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

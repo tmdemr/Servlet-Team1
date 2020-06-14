@@ -1,0 +1,459 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: UserAdminAgent</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.model</a> ]
+</div>
+
+<h1>Coverage Summary for Class: UserAdminAgent (cse.maven_webmail.model)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UserAdminAgent</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/ 17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    86.9%
+  </span>
+  <span class="absValue">
+    (146/ 168)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/*
+<i>2</i>&nbsp; * To change this template, choose Tools | Templates
+<i>3</i>&nbsp; * and open the template in the editor.
+<i>4</i>&nbsp; */
+<i>5</i>&nbsp;package cse.maven_webmail.model;
+<i>6</i>&nbsp;
+<i>7</i>&nbsp;import org.slf4j.Logger;
+<i>8</i>&nbsp;import org.slf4j.LoggerFactory;
+<i>9</i>&nbsp;
+<i>10</i>&nbsp;import java.io.*;
+<i>11</i>&nbsp;import java.net.Socket;
+<i>12</i>&nbsp;import java.util.*;
+<i>13</i>&nbsp;import java.util.stream.Collectors;
+<i>14</i>&nbsp;
+<i>15</i>&nbsp;/**
+<i>16</i>&nbsp; * @author jongmin
+<i>17</i>&nbsp; */
+<i>18</i>&nbsp;public class UserAdminAgent {
+<b class="fc"><i>19</i>&nbsp;    private static final Logger logger = LoggerFactory.getLogger(UserAdminAgent.class); // 로거</b>
+<i>20</i>&nbsp;    private Socket socket;
+<i>21</i>&nbsp;    private InputStream is;
+<i>22</i>&nbsp;    private OutputStream os;
+<b class="fc"><i>23</i>&nbsp;    private boolean isConnected = false;</b>
+<i>24</i>&nbsp;    private String rootId;  //  = &quot;root&quot;;
+<i>25</i>&nbsp;    private String rootPassword;  // = &quot;root&quot;;
+<i>26</i>&nbsp;    private String adminId; //  = &quot;admin&quot;;
+<i>27</i>&nbsp;    private static final String EOL = &quot;\r\n&quot;;
+<i>28</i>&nbsp;    private String cwd;
+<i>29</i>&nbsp;    private String server;
+<i>30</i>&nbsp;    private int port;
+<i>31</i>&nbsp;
+<b class="fc"><i>32</i>&nbsp;    public UserAdminAgent() {</b>
+<i>33</i>&nbsp;        // 빈 생성자
+<b class="fc"><i>34</i>&nbsp;    }</b>
+<i>35</i>&nbsp;
+<i>36</i>&nbsp;    /**
+<i>37</i>&nbsp;     * path를 설정합니다.
+<i>38</i>&nbsp;     * @param cwd
+<i>39</i>&nbsp;     */
+<i>40</i>&nbsp;    public void setCwd(String cwd) {
+<b class="fc"><i>41</i>&nbsp;        this.cwd = cwd;</b>
+<b class="fc"><i>42</i>&nbsp;    }</b>
+<i>43</i>&nbsp;
+<i>44</i>&nbsp;    /**
+<i>45</i>&nbsp;     * 서버를 설정하고 연결합니다.
+<i>46</i>&nbsp;     * @param server 서버
+<i>47</i>&nbsp;     * @throws Exception
+<i>48</i>&nbsp;     */
+<i>49</i>&nbsp;    public void setServer(String server) throws Exception {
+<b class="fc"><i>50</i>&nbsp;        this.server = server;</b>
+<b class="fc"><i>51</i>&nbsp;        initialize();</b>
+<b class="fc"><i>52</i>&nbsp;    }</b>
+<i>53</i>&nbsp;
+<i>54</i>&nbsp;    /**
+<i>55</i>&nbsp;     * 포트를 설정합니다.
+<i>56</i>&nbsp;     * @param port 포트
+<i>57</i>&nbsp;     */
+<i>58</i>&nbsp;    public void setPort(int port) {
+<b class="fc"><i>59</i>&nbsp;        this.port = port;</b>
+<b class="fc"><i>60</i>&nbsp;    }</b>
+<i>61</i>&nbsp;
+<i>62</i>&nbsp;    /**
+<i>63</i>&nbsp;     * 프로퍼티를 열어서 설정 값들을 가져오고, 연결합니다.
+<i>64</i>&nbsp;     * @throws Exception
+<i>65</i>&nbsp;     */
+<i>66</i>&nbsp;    public void initialize() throws Exception {
+<b class="fc"><i>67</i>&nbsp;        Properties props = new Properties();</b>
+<b class="fc"><i>68</i>&nbsp;        String propertyFile = this.cwd + &quot;/WEB-INF/classes/config/system.properties&quot;;</b>
+<b class="fc"><i>69</i>&nbsp;        propertyFile = propertyFile.replace(&quot;\\&quot;, &quot;/&quot;);</b>
+<b class="fc"><i>70</i>&nbsp;        logger.info(&quot;prop path = {}&quot;, propertyFile);</b>
+<b class="fc"><i>71</i>&nbsp;        try (BufferedInputStream bis =</b>
+<i>72</i>&nbsp;                     new BufferedInputStream(
+<i>73</i>&nbsp;                             new FileInputStream(propertyFile))) {
+<b class="fc"><i>74</i>&nbsp;            props.load(bis);</b>
+<b class="fc"><i>75</i>&nbsp;            rootId = props.getProperty(&quot;root_id&quot;);</b>
+<b class="fc"><i>76</i>&nbsp;            rootPassword = props.getProperty(&quot;root_password&quot;);</b>
+<b class="fc"><i>77</i>&nbsp;            adminId = props.getProperty(&quot;admin_id&quot;);</b>
+<b class="fc"><i>78</i>&nbsp;            logger.info(&quot;ROOT_ID = {}\nROOT_PASS = {}\n&quot;, rootId, rootPassword);</b>
+<b class="nc"><i>79</i>&nbsp;        } catch (IOException ioe) {</b>
+<b class="nc"><i>80</i>&nbsp;            logger.error(&quot;UserAdminAgent: 초기화 실패 - {}&quot;, ioe.getMessage());</b>
+<b class="fc"><i>81</i>&nbsp;        }</b>
+<b class="fc"><i>82</i>&nbsp;        socket = new Socket(server, port);</b>
+<b class="fc"><i>83</i>&nbsp;        is = socket.getInputStream();</b>
+<b class="fc"><i>84</i>&nbsp;        os = socket.getOutputStream();</b>
+<i>85</i>&nbsp;
+<b class="fc"><i>86</i>&nbsp;        isConnected = connect();</b>
+<b class="fc"><i>87</i>&nbsp;    }</b>
+<i>88</i>&nbsp;
+<i>89</i>&nbsp;    /**
+<i>90</i>&nbsp;     * 사용자를 추가합니다.
+<i>91</i>&nbsp;     * @param userId 아이디
+<i>92</i>&nbsp;     * @param password 비밀번호
+<i>93</i>&nbsp;     * @return 사용자 추가 성공여부
+<i>94</i>&nbsp;     */
+<i>95</i>&nbsp;    public boolean addUser(String userId, String password) {
+<b class="fc"><i>96</i>&nbsp;        boolean status = false;</b>
+<b class="fc"><i>97</i>&nbsp;        logger.info(&quot;addUser() called&quot;);</b>
+<b class="pc"><i>98</i>&nbsp;        if (!isConnected) {</b>
+<b class="nc"><i>99</i>&nbsp;            return status;</b>
+<i>100</i>&nbsp;        }
+<i>101</i>&nbsp;        try {
+<i>102</i>&nbsp;            // 1: &quot;adduser&quot; command
+<b class="fc"><i>103</i>&nbsp;            String addUserCommand = &quot;adduser &quot; + userId + &quot; &quot; + password + EOL;</b>
+<b class="fc"><i>104</i>&nbsp;            String recvMessage = sendCommand(addUserCommand);</b>
+<b class="fc"><i>105</i>&nbsp;            logger.trace(recvMessage);</b>
+<i>106</i>&nbsp;            //}
+<i>107</i>&nbsp;            // 3: 기존 메일사용자 여부 확인
+<b class="fc"><i>108</i>&nbsp;            status = recvMessage.contains(&quot;added&quot;);</b>
+<i>109</i>&nbsp;
+<b class="nc"><i>110</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i>111</i>&nbsp;            logger.error(&quot;addUser failed : {}&quot;, ex.getMessage());</b>
+<b class="nc"><i>112</i>&nbsp;            status = false;</b>
+<b class="fc"><i>113</i>&nbsp;        }</b>
+<b class="fc"><i>114</i>&nbsp;        return status; // 상태 반환</b>
+<i>115</i>&nbsp;    }  // addUser()
+<i>116</i>&nbsp;
+<i>117</i>&nbsp;    /**
+<i>118</i>&nbsp;     * 단일 사용자 제거를 합니다.
+<i>119</i>&nbsp;     * @param userId 사용자아이디
+<i>120</i>&nbsp;     * @return 사용자 제거 성공여부
+<i>121</i>&nbsp;     */
+<i>122</i>&nbsp;    public boolean deleteUser(String userId) {
+<b class="fc"><i>123</i>&nbsp;        boolean status = false;</b>
+<b class="fc"><i>124</i>&nbsp;        String command = &quot;deluser &quot; + userId + EOL;</b>
+<b class="pc"><i>125</i>&nbsp;        if (!isConnected) {</b>
+<b class="nc"><i>126</i>&nbsp;            return status;</b>
+<i>127</i>&nbsp;        }
+<i>128</i>&nbsp;        try {
+<b class="fc"><i>129</i>&nbsp;            String recvMessage = sendCommand(command);</b>
+<b class="fc"><i>130</i>&nbsp;            logger.trace(recvMessage);</b>
+<b class="fc"><i>131</i>&nbsp;            status = recvMessage.contains(&quot;deleted&quot;);</b>
+<i>132</i>&nbsp;
+<b class="nc"><i>133</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i>134</i>&nbsp;            logger.error(&quot;deleteUser failed : {}&quot;, ex.getMessage());</b>
+<b class="nc"><i>135</i>&nbsp;            status = false;</b>
+<b class="fc"><i>136</i>&nbsp;        }</b>
+<b class="fc"><i>137</i>&nbsp;        return status; // 상태 반환</b>
+<i>138</i>&nbsp;    }
+<i>139</i>&nbsp;
+<i>140</i>&nbsp;    /**
+<i>141</i>&nbsp;     * 사용자 리스트를 반환합니다.
+<i>142</i>&nbsp;     * @return 사용자 리스트
+<i>143</i>&nbsp;     */
+<i>144</i>&nbsp;    public List&lt;String&gt; getUserList() {
+<b class="fc"><i>145</i>&nbsp;        List&lt;String&gt; userList = new LinkedList&lt;&gt;();</b>
+<b class="pc"><i>146</i>&nbsp;        if (!isConnected) {</b>
+<b class="nc"><i>147</i>&nbsp;            return userList;</b>
+<i>148</i>&nbsp;        }
+<i>149</i>&nbsp;        try {
+<i>150</i>&nbsp;            // 1: &quot;listusers&quot; 명령 송신
+<b class="fc"><i>151</i>&nbsp;            String command = &quot;listusers &quot; + EOL;</b>
+<i>152</i>&nbsp;            // 3: 응답 메시지 처리
+<b class="fc"><i>153</i>&nbsp;            String recvMessage = sendCommand(command);</b>
+<b class="fc"><i>154</i>&nbsp;            logger.info(recvMessage);</b>
+<b class="fc"><i>155</i>&nbsp;            userList = parseUserList(recvMessage);</b>
+<b class="nc"><i>156</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i>157</i>&nbsp;            logger.error(&quot;getUserList error : {}&quot;, ex.getMessage());</b>
+<b class="fc"><i>158</i>&nbsp;        }</b>
+<b class="fc"><i>159</i>&nbsp;        return userList;</b>
+<i>160</i>&nbsp;
+<i>161</i>&nbsp;    }  // getUserList()
+<i>162</i>&nbsp;
+<i>163</i>&nbsp;    /**
+<i>164</i>&nbsp;     * 사용자 리스트를 파싱합니다.
+<i>165</i>&nbsp;     * @param message 받은 모든 결과
+<i>166</i>&nbsp;     * @return 파싱된 리스트
+<i>167</i>&nbsp;     */
+<i>168</i>&nbsp;    private List&lt;String&gt; parseUserList(String message) {
+<i>169</i>&nbsp;        // 1: 줄 단위로 나누기
+<b class="fc"><i>170</i>&nbsp;        String[] lines = message.split(EOL);</b>
+<i>171</i>&nbsp;        // 2: 첫 번째 줄에는 등록된 사용자 수에 대한 정보가 있음.
+<i>172</i>&nbsp;        //    예) Existing accounts 7
+<b class="fc"><i>173</i>&nbsp;        String[] firstLine = lines[0].split(&quot; &quot;);</b>
+<b class="fc"><i>174</i>&nbsp;        int numberOfUsers = Integer.parseInt(firstLine[2]);</b>
+<b class="fc"><i>175</i>&nbsp;        String[] accountLines = new String[numberOfUsers];</b>
+<b class="fc"><i>176</i>&nbsp;        System.arraycopy(lines, 1, accountLines, 0, numberOfUsers);</b>
+<b class="fc"><i>177</i>&nbsp;        return Arrays.stream(accountLines).map(line -&gt; { // java 8의 스트림으로 변경해보았음.</b>
+<b class="fc"><i>178</i>&nbsp;            if (line.split(&quot; &quot;)[1].equals(adminId))</b>
+<b class="fc"><i>179</i>&nbsp;                return null;</b>
+<i>180</i>&nbsp;            else
+<b class="fc"><i>181</i>&nbsp;                return line.split(&quot; &quot;)[1];</b>
+<b class="fc"><i>182</i>&nbsp;        }).filter(Objects::nonNull).collect(Collectors.toList());</b>
+<i>183</i>&nbsp;
+<i>184</i>&nbsp;        // 3: 두 번째 줄부터는 각 사용자 ID 정보를 보여줌.
+<i>185</i>&nbsp;        //    예) user: admin
+<i>186</i>&nbsp;        /*
+<i>187</i>&nbsp;        for (int i = 1; i &lt;= numberOfUsers; i++) {
+<i>188</i>&nbsp;            // 3.1: 한 줄을 구분자 &quot; &quot;로 나눔.
+<i>189</i>&nbsp;            String[] userLine = lines[i].split(&quot; &quot;);
+<i>190</i>&nbsp;            // 3.2 사용자 ID가 관리자 ID와 일치하는 지 여부 확인
+<i>191</i>&nbsp;            if (!userLine[1].equals(ADMIN_ID)) {
+<i>192</i>&nbsp;                userList.add(userLine[1]);
+<i>193</i>&nbsp;            }
+<i>194</i>&nbsp;        }
+<i>195</i>&nbsp;
+<i>196</i>&nbsp;         */
+<i>197</i>&nbsp;        //return userList;
+<i>198</i>&nbsp;    } // parseUserList()
+<i>199</i>&nbsp;
+<i>200</i>&nbsp;    /**
+<i>201</i>&nbsp;     * 사용자 여럿을 제거합니다.
+<i>202</i>&nbsp;     * @param userList 선택된 사용자들
+<i>203</i>&nbsp;     * @return 제거 성공 여부
+<i>204</i>&nbsp;     */
+<i>205</i>&nbsp;    public boolean deleteUsers(String[] userList) {
+<b class="fc"><i>206</i>&nbsp;        byte[] messageBuffer = new byte[1024];</b>
+<i>207</i>&nbsp;        String command;
+<i>208</i>&nbsp;        String recvMessage;
+<b class="fc"><i>209</i>&nbsp;        boolean status = false;</b>
+<b class="fc"><i>210</i>&nbsp;        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();</b>
+<b class="fc"><i>211</i>&nbsp;        logger.info(&quot;deleteUsers Connected... : {}&quot;,isConnected);</b>
+<b class="pc"><i>212</i>&nbsp;        if (!isConnected) {</b>
+<b class="nc"><i>213</i>&nbsp;            return false;</b>
+<i>214</i>&nbsp;        }
+<b class="fc"><i>215</i>&nbsp;        logger.info(&quot;selected users : {}&quot;,String.join(&quot;, &quot;, userList));</b>
+<i>216</i>&nbsp;        try {
+<b class="fc"><i>217</i>&nbsp;            for (String userId : userList) {</b>
+<b class="fc"><i>218</i>&nbsp;                userDatabaseAgent.setUserId(userId);</b>
+<b class="fc"><i>219</i>&nbsp;                userDatabaseAgent.deleteUser();</b>
+<i>220</i>&nbsp;                // 1: &quot;deluser&quot; 명령 송신
+<b class="fc"><i>221</i>&nbsp;                command = &quot;deluser &quot; + userId + EOL;</b>
+<b class="fc"><i>222</i>&nbsp;                os.write(command.getBytes());</b>
+<b class="fc"><i>223</i>&nbsp;                logger.trace(command);</b>
+<i>224</i>&nbsp;
+<i>225</i>&nbsp;                // 2: 응답 메시지 수신
+<b class="fc"><i>226</i>&nbsp;                java.util.Arrays.fill(messageBuffer, (byte) 0);</b>
+<b class="fc"><i>227</i>&nbsp;                int bytes = is.read(messageBuffer);</b>
+<b class="fc"><i>228</i>&nbsp;                logger.trace(&quot;deluser : {}byte&quot;, bytes);</b>
+<i>229</i>&nbsp;                // 3: 응답 메시지 분석
+<b class="fc"><i>230</i>&nbsp;                recvMessage = new String(messageBuffer);</b>
+<b class="fc"><i>231</i>&nbsp;                logger.trace(recvMessage);</b>
+<b class="pc"><i>232</i>&nbsp;                if (recvMessage.contains(&quot;deleted&quot;)) {</b>
+<b class="fc"><i>233</i>&nbsp;                    status = true;</b>
+<i>234</i>&nbsp;                }
+<i>235</i>&nbsp;            }
+<b class="fc"><i>236</i>&nbsp;            quit();</b>
+<b class="nc"><i>237</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i>238</i>&nbsp;            logger.error(&quot;delete users error : {}&quot;, ex.getMessage());</b>
+<b class="fc"><i>239</i>&nbsp;        }</b>
+<b class="fc"><i>240</i>&nbsp;        return status;</b>
+<i>241</i>&nbsp;
+<i>242</i>&nbsp;    }
+<i>243</i>&nbsp;
+<i>244</i>&nbsp;    /**
+<i>245</i>&nbsp;     * 사용자가 존재하는지 검사합니다.
+<i>246</i>&nbsp;     * @param userid 검사할 아이디
+<i>247</i>&nbsp;     * @return 사용자 존재 여부
+<i>248</i>&nbsp;     */
+<i>249</i>&nbsp;    public boolean verify(String userid) {
+<b class="fc"><i>250</i>&nbsp;        boolean status = false;</b>
+<i>251</i>&nbsp;        try {
+<i>252</i>&nbsp;            // --&gt; verify userid
+<b class="fc"><i>253</i>&nbsp;            String verifyCommand = &quot;verify &quot; + userid + EOL;</b>
+<b class="fc"><i>254</i>&nbsp;            String recvMessage = sendCommand(verifyCommand);</b>
+<b class="fc"><i>255</i>&nbsp;            if (recvMessage.contains(&quot;exists&quot;)) {</b>
+<b class="fc"><i>256</i>&nbsp;                status = true;</b>
+<i>257</i>&nbsp;            }
+<b class="fc"><i>258</i>&nbsp;            logger.info(recvMessage);</b>
+<b class="nc"><i>259</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i>260</i>&nbsp;            logger.error(&quot;verify error : {}&quot;, ex.getMessage());</b>
+<b class="fc"><i>261</i>&nbsp;        }</b>
+<b class="fc"><i>262</i>&nbsp;        return status;</b>
+<i>263</i>&nbsp;
+<i>264</i>&nbsp;    }
+<i>265</i>&nbsp;
+<i>266</i>&nbsp;    /**
+<i>267</i>&nbsp;     * 원격 관리 도구에 접속하는 메소드입니다.
+<i>268</i>&nbsp;     * @return 연결 성공 여부
+<i>269</i>&nbsp;     * @throws Exception socket이라서
+<i>270</i>&nbsp;     */
+<i>271</i>&nbsp;    private boolean connect() throws Exception {
+<b class="fc"><i>272</i>&nbsp;        byte[] messageBuffer = new byte[1024];</b>
+<i>273</i>&nbsp;        boolean returnVal;
+<i>274</i>&nbsp;        int bytes;
+<i>275</i>&nbsp;        String sendMessage;
+<b class="fc"><i>276</i>&nbsp;        logger.info(&quot;UserAdminAgent.connect() called...&quot;);</b>
+<i>277</i>&nbsp;        // root 인증: id, passwd - default: root
+<i>278</i>&nbsp;        // 1: Login Id message 수신
+<b class="fc"><i>279</i>&nbsp;        bytes = is.read(messageBuffer);</b>
+<b class="fc"><i>280</i>&nbsp;        logger.info(&quot;connect : {}bytes&quot;,bytes);</b>
+<b class="fc"><i>281</i>&nbsp;        String recvMessage = new String(messageBuffer);</b>
+<b class="fc"><i>282</i>&nbsp;        logger.trace(recvMessage);</b>
+<i>283</i>&nbsp;        // 2: rootId 송신
+<b class="fc"><i>284</i>&nbsp;        sendMessage = rootId + EOL;</b>
+<b class="fc"><i>285</i>&nbsp;        os.write(sendMessage.getBytes());</b>
+<i>286</i>&nbsp;
+<i>287</i>&nbsp;        // 3: Password message 수신
+<b class="fc"><i>288</i>&nbsp;        java.util.Arrays.fill(messageBuffer, (byte) 0);</b>
+<b class="fc"><i>289</i>&nbsp;        bytes = is.read(messageBuffer);</b>
+<b class="fc"><i>290</i>&nbsp;        logger.info(&quot;connect : {}bytes&quot;,bytes);</b>
+<b class="fc"><i>291</i>&nbsp;        recvMessage = new String(messageBuffer);</b>
+<b class="fc"><i>292</i>&nbsp;        logger.trace(recvMessage);</b>
+<i>293</i>&nbsp;        // 4: rootPassword 송신
+<b class="fc"><i>294</i>&nbsp;        sendMessage = rootPassword + EOL;</b>
+<b class="fc"><i>295</i>&nbsp;        os.write(sendMessage.getBytes());</b>
+<i>296</i>&nbsp;
+<i>297</i>&nbsp;        // 5: welcome message 수신
+<b class="fc"><i>298</i>&nbsp;        java.util.Arrays.fill(messageBuffer, (byte) 0);</b>
+<b class="fc"><i>299</i>&nbsp;        bytes = is.read(messageBuffer);</b>
+<b class="fc"><i>300</i>&nbsp;        logger.info(&quot;connect : {}bytes&quot;,bytes);</b>
+<b class="fc"><i>301</i>&nbsp;        recvMessage = new String(messageBuffer);</b>
+<b class="fc"><i>302</i>&nbsp;        logger.trace(recvMessage);</b>
+<b class="fc"><i>303</i>&nbsp;        returnVal = recvMessage.contains(&quot;Welcome&quot;);</b>
+<b class="fc"><i>304</i>&nbsp;        logger.info(&quot;connecntion : &quot; + returnVal);</b>
+<b class="fc"><i>305</i>&nbsp;        return returnVal;</b>
+<i>306</i>&nbsp;    }  // connect()
+<i>307</i>&nbsp;
+<i>308</i>&nbsp;    /**
+<i>309</i>&nbsp;     * 원격 제어 도구를 종료하는 메소드입니다.
+<i>310</i>&nbsp;     * @return 종료 성공 여부
+<i>311</i>&nbsp;     */
+<i>312</i>&nbsp;    public boolean quit() {
+<b class="fc"><i>313</i>&nbsp;        byte[] messageBuffer = new byte[1024];</b>
+<b class="fc"><i>314</i>&nbsp;        boolean status = false;</b>
+<i>315</i>&nbsp;        // quit
+<i>316</i>&nbsp;        try {
+<i>317</i>&nbsp;            // 1: quit 명령 송신
+<b class="fc"><i>318</i>&nbsp;            String quitCommand = &quot;quit&quot; + EOL;</b>
+<b class="fc"><i>319</i>&nbsp;            os.write(quitCommand.getBytes());</b>
+<i>320</i>&nbsp;            // 2: quit 명령에 대한 응답 수신
+<b class="fc"><i>321</i>&nbsp;            java.util.Arrays.fill(messageBuffer, (byte) 0);</b>
+<b class="fc"><i>322</i>&nbsp;            int bytes = is.read(messageBuffer);</b>
+<b class="fc"><i>323</i>&nbsp;            logger.info(&quot;나가기는 {}바이트&quot;, bytes);</b>
+<i>324</i>&nbsp;            // 3: 메시지 분석
+<b class="fc"><i>325</i>&nbsp;            String recvMessage = new String(messageBuffer);</b>
+<b class="fc"><i>326</i>&nbsp;            logger.info(recvMessage);</b>
+<b class="fc"><i>327</i>&nbsp;            status = recvMessage.contains(&quot;Bye&quot;); // Bye인걸로 확인됨 그 전의 closed는 잘못된 거임</b>
+<b class="fc"><i>328</i>&nbsp;            socket.close();</b>
+<b class="nc"><i>329</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i>330</i>&nbsp;            logger.error(&quot;UserAdminAgent.quit() error : {}&quot;, ex.getMessage());</b>
+<b class="fc"><i>331</i>&nbsp;        }</b>
+<b class="fc"><i>332</i>&nbsp;        return status;</b>
+<i>333</i>&nbsp;
+<i>334</i>&nbsp;    }
+<i>335</i>&nbsp;
+<i>336</i>&nbsp;    /**
+<i>337</i>&nbsp;     * 명령을 보낼 때 사용하는 메소드입니다. 사용자 리스트의 경우 끝이 어딘지 알 수 없고 얼마나 많은
+<i>338</i>&nbsp;     * 바이트를 받을지 알 수 없어서 만든 메소드입니다.
+<i>339</i>&nbsp;     * @param command 보낼 명령
+<i>340</i>&nbsp;     * @return 명령에  대한 결과
+<i>341</i>&nbsp;     * @throws IOException 소켓이라...
+<i>342</i>&nbsp;     */
+<i>343</i>&nbsp;    private String sendCommand(String command) throws IOException {
+<b class="fc"><i>344</i>&nbsp;        os.write(command.getBytes());</b>
+<b class="fc"><i>345</i>&nbsp;        String quitCommand = &quot;quit&quot; + EOL;</b>
+<b class="fc"><i>346</i>&nbsp;        os.write(quitCommand.getBytes());</b>
+<b class="fc"><i>347</i>&nbsp;        byte[] allResults = is.readAllBytes();</b>
+<b class="fc"><i>348</i>&nbsp;        byte[] quitResults = Arrays.copyOfRange(allResults, allResults.length - 6, allResults.length - 1); // Bye일거임</b>
+<b class="fc"><i>349</i>&nbsp;        logger.info(&quot;quit의 Bye일거임 : &quot; + new String(quitResults));</b>
+<b class="fc"><i>350</i>&nbsp;        byte[] commandResults = Arrays.copyOfRange(allResults, 0, allResults.length - 7);</b>
+<b class="fc"><i>351</i>&nbsp;        logger.info(&quot;정보일거임 : &quot; + new String(commandResults));</b>
+<b class="fc"><i>352</i>&nbsp;        socket.close();</b>
+<b class="fc"><i>353</i>&nbsp;        return new String(commandResults);</b>
+<i>354</i>&nbsp;    }
+<i>355</i>&nbsp;
+<i>356</i>&nbsp;    /**
+<i>357</i>&nbsp;     * 사용자의 비밀번호를 바꾸는 메소드입니다.
+<i>358</i>&nbsp;     * @param userId 바꿀 사용자 아이디
+<i>359</i>&nbsp;     * @param newPassword 새로운 비밀번호
+<i>360</i>&nbsp;     * @return 비밀번호 변경 성공 여부
+<i>361</i>&nbsp;     */
+<i>362</i>&nbsp;    public boolean setPassword(String userId, String newPassword) {
+<b class="fc"><i>363</i>&nbsp;        boolean status = false;</b>
+<i>364</i>&nbsp;        try {
+<b class="fc"><i>365</i>&nbsp;            String setPasswordCommand = &quot;setpassword &quot; + userId + &quot; &quot; + newPassword + EOL;</b>
+<b class="fc"><i>366</i>&nbsp;            String recvMessage = sendCommand(setPasswordCommand);</b>
+<b class="pc"><i>367</i>&nbsp;            if (recvMessage.contains(&quot;Password&quot;)) {</b>
+<b class="fc"><i>368</i>&nbsp;                status = true;</b>
+<i>369</i>&nbsp;            }
+<b class="fc"><i>370</i>&nbsp;            logger.info(recvMessage);</b>
+<b class="nc"><i>371</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i>372</i>&nbsp;            logger.error(&quot;setPassword error : {}&quot;, ex.getMessage());</b>
+<b class="fc"><i>373</i>&nbsp;        }</b>
+<b class="fc"><i>374</i>&nbsp;        return status;</b>
+<i>375</i>&nbsp;    }
+<i>376</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

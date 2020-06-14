@@ -1,0 +1,394 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: UserHandler</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.control</a> ]
+</div>
+
+<h1>Coverage Summary for Class: UserHandler (cse.maven_webmail.control)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UserHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.3%
+  </span>
+  <span class="absValue">
+    (12/ 13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    85.6%
+  </span>
+  <span class="absValue">
+    (125/ 146)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package cse.maven_webmail.control;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import cse.maven_webmail.model.UserDatabaseAgent;
+<i>4</i>&nbsp;import cse.maven_webmail.model.UserAdminAgent;
+<i>5</i>&nbsp;import org.slf4j.Logger;
+<i>6</i>&nbsp;import org.slf4j.LoggerFactory;
+<i>7</i>&nbsp;
+<i>8</i>&nbsp;import javax.servlet.ServletException;
+<i>9</i>&nbsp;import javax.servlet.http.HttpServlet;
+<i>10</i>&nbsp;import javax.servlet.http.HttpServletRequest;
+<i>11</i>&nbsp;import javax.servlet.http.HttpServletResponse;
+<i>12</i>&nbsp;import java.io.BufferedInputStream;
+<i>13</i>&nbsp;import java.io.FileInputStream;
+<i>14</i>&nbsp;import java.io.IOException;
+<i>15</i>&nbsp;import java.io.PrintWriter;
+<i>16</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i>17</i>&nbsp;import java.util.Properties;
+<i>18</i>&nbsp;
+<i>19</i>&nbsp;/**
+<i>20</i>&nbsp; * 유저 개인 정보 관련을 제어하는 클래스입니다.
+<i>21</i>&nbsp; * @see UserDatabaseAgent
+<i>22</i>&nbsp; */
+<b class="fc"><i>23</i>&nbsp;public class UserHandler extends HttpServlet {</b>
+<b class="fc"><i>24</i>&nbsp;    private static final Logger logger = LoggerFactory.getLogger(UserHandler.class);</b>
+<i>25</i>&nbsp;    private static final String USER_ID = &quot;userId&quot;;
+<i>26</i>&nbsp;    private String path;
+<i>27</i>&nbsp;    private String host;
+<i>28</i>&nbsp;    private int port;
+<i>29</i>&nbsp;
+<i>30</i>&nbsp;    @Override
+<i>31</i>&nbsp;    public void init() {
+<b class="fc"><i>32</i>&nbsp;        Properties props = new Properties();</b>
+<b class="fc"><i>33</i>&nbsp;        path = getServletContext().getRealPath(&quot;.&quot;);</b>
+<b class="fc"><i>34</i>&nbsp;        String propertyFile = path + &quot;/WEB-INF/classes/config/james_server.properties&quot;;</b>
+<b class="fc"><i>35</i>&nbsp;        propertyFile = propertyFile.replace(&quot;\\&quot;, &quot;/&quot;);</b>
+<b class="fc"><i>36</i>&nbsp;        logger.info(&quot;prop path = {}&quot;, propertyFile);</b>
+<b class="fc"><i>37</i>&nbsp;        try (BufferedInputStream bis =</b>
+<i>38</i>&nbsp;                     new BufferedInputStream(
+<i>39</i>&nbsp;                             new FileInputStream(propertyFile))) {
+<b class="fc"><i>40</i>&nbsp;            props.load(bis);</b>
+<b class="fc"><i>41</i>&nbsp;            host = props.getProperty(&quot;host&quot;);</b>
+<b class="fc"><i>42</i>&nbsp;            port = Integer.parseInt(props.getProperty(&quot;port&quot;));</b>
+<b class="fc"><i>43</i>&nbsp;            logger.trace(&quot;host = {}\nport = {}\n&quot;, host, port);</b>
+<b class="nc"><i>44</i>&nbsp;        } catch (IOException ioe) {</b>
+<b class="nc"><i>45</i>&nbsp;            logger.error(&quot;UserHandler: 초기화 실패 - {}&quot;, ioe.getMessage());</b>
+<b class="fc"><i>46</i>&nbsp;        }</b>
+<b class="fc"><i>47</i>&nbsp;    }</b>
+<i>48</i>&nbsp;
+<i>49</i>&nbsp;    /**
+<i>50</i>&nbsp;     * 요청을 처리합니다.
+<i>51</i>&nbsp;     * @param request 요청
+<i>52</i>&nbsp;     * @param response 응답
+<i>53</i>&nbsp;     * @throws Exception
+<i>54</i>&nbsp;     */
+<i>55</i>&nbsp;    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+<i>56</i>&nbsp;            throws Exception {
+<b class="fc"><i>57</i>&nbsp;        response.setContentType(&quot;text/html;charset=UTF-8&quot;);</b>
+<b class="fc"><i>58</i>&nbsp;        request.setCharacterEncoding(StandardCharsets.UTF_8.name());</b>
+<b class="fc"><i>59</i>&nbsp;        int menu = Integer.parseInt(request.getParameter(&quot;menu&quot;));</b>
+<b class="fc"><i>60</i>&nbsp;        logger.info(String.valueOf(menu));</b>
+<b class="pc"><i>61</i>&nbsp;        switch (menu) {</b>
+<i>62</i>&nbsp;            case CommandType.USER_VERIFY_COMMAND:
+<b class="fc"><i>63</i>&nbsp;                userVerify(request, response);</b>
+<b class="fc"><i>64</i>&nbsp;                break;</b>
+<i>65</i>&nbsp;            case CommandType.ADD_USER_COMMAND:
+<b class="fc"><i>66</i>&nbsp;                addUser(request, response);</b>
+<b class="fc"><i>67</i>&nbsp;                break;</b>
+<i>68</i>&nbsp;            case CommandType.FIND_ID_COMMAND:
+<b class="fc"><i>69</i>&nbsp;                findID(request, response);</b>
+<b class="fc"><i>70</i>&nbsp;                break;</b>
+<i>71</i>&nbsp;            case CommandType.FIND_PASSWORD_COMMAND:
+<b class="fc"><i>72</i>&nbsp;                findPassword(request, response);</b>
+<b class="fc"><i>73</i>&nbsp;                break;</b>
+<i>74</i>&nbsp;            case CommandType.CHANGE_PASSWORD_COMMAND:
+<b class="fc"><i>75</i>&nbsp;                changePassword(request, response);</b>
+<b class="fc"><i>76</i>&nbsp;                break;</b>
+<i>77</i>&nbsp;            case CommandType.CHANGE_MY_INFO:
+<b class="fc"><i>78</i>&nbsp;                changeMyInfo(request, response);</b>
+<b class="fc"><i>79</i>&nbsp;                break;</b>
+<i>80</i>&nbsp;            case CommandType.DELETE_USER_COMMAND:
+<b class="fc"><i>81</i>&nbsp;                userDelete(request, response);</b>
+<b class="fc"><i>82</i>&nbsp;                break;</b>
+<i>83</i>&nbsp;            default:
+<b class="nc"><i>84</i>&nbsp;                try (PrintWriter out = response.getWriter()) {</b>
+<b class="nc"><i>85</i>&nbsp;                    out.println(&quot;없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?&quot;);</b>
+<i>86</i>&nbsp;                }
+<i>87</i>&nbsp;                break;
+<i>88</i>&nbsp;        }
+<i>89</i>&nbsp;
+<b class="fc"><i>90</i>&nbsp;    }</b>
+<i>91</i>&nbsp;
+<i>92</i>&nbsp;    private void userDelete(HttpServletRequest request, HttpServletResponse response) throws Exception {
+<b class="fc"><i>93</i>&nbsp;        String userId = request.getParameter(USER_ID);</b>
+<b class="fc"><i>94</i>&nbsp;        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();</b>
+<b class="fc"><i>95</i>&nbsp;        userDatabaseAgent.setUserId(userId);</b>
+<b class="pc"><i>96</i>&nbsp;        if (userDatabaseAgent.deleteUser()) {</b>
+<b class="fc"><i>97</i>&nbsp;            UserAdminAgent userAdminAgent = new UserAdminAgent();</b>
+<b class="fc"><i>98</i>&nbsp;            userAdminAgent.setCwd(path);</b>
+<b class="fc"><i>99</i>&nbsp;            userAdminAgent.setPort(port);</b>
+<b class="fc"><i>100</i>&nbsp;            userAdminAgent.setServer(host);</b>
+<b class="pc"><i>101</i>&nbsp;            if (userAdminAgent.deleteUser(userId)) {</b>
+<b class="fc"><i>102</i>&nbsp;                try (PrintWriter out = response.getWriter()) {</b>
+<b class="fc"><i>103</i>&nbsp;                    out.println(&quot;&lt;head&gt;\n&quot; +</b>
+<i>104</i>&nbsp;                            &quot;    &lt;meta charset=\&quot;UTF-8\&quot;&gt;\n&quot; +
+<i>105</i>&nbsp;                            &quot;    &lt;title&gt;회원탈퇴 성공&lt;/title&gt;\n&quot; +
+<i>106</i>&nbsp;                            &quot;    &lt;script type=\&quot;text/javascript\&quot;&gt;\n&quot; +
+<i>107</i>&nbsp;                            &quot;        function gohome() {\n&quot; +
+<i>108</i>&nbsp;                            &quot;            window.location = \&quot;/maven_webmail/\&quot;\n&quot; +
+<i>109</i>&nbsp;                            &quot;        }\n&quot; +
+<i>110</i>&nbsp;                            &quot;    &lt;/script&gt;\n&quot; +
+<i>111</i>&nbsp;                            &quot;&lt;/head&gt;\n&quot; +
+<i>112</i>&nbsp;                            &quot;&lt;body onload=\&quot;setTimeout(&#39;gohome()&#39;, 5000)\&quot;&gt;\n&quot; +
+<i>113</i>&nbsp;                            userId + &quot;님 회원탈퇴되었습니다.\n&quot; +
+<i>114</i>&nbsp;                            &quot;\n&quot; +
+<i>115</i>&nbsp;                            &quot;5초후 메인화면으로 돌아갑니다.&quot; +
+<i>116</i>&nbsp;                            &quot;&lt;/body&gt;&quot;);
+<i>117</i>&nbsp;                }
+<i>118</i>&nbsp;                //성공
+<i>119</i>&nbsp;            } else {
+<b class="nc"><i>120</i>&nbsp;                try (PrintWriter out = response.getWriter()) {</b>
+<b class="nc"><i>121</i>&nbsp;                    out.println(&quot;&lt;head&gt;\n&quot; +</b>
+<i>122</i>&nbsp;                            &quot;    &lt;meta charset=\&quot;UTF-8\&quot;&gt;\n&quot; +
+<i>123</i>&nbsp;                            &quot;    &lt;title&gt;회원탈퇴 실패&lt;/title&gt;\n&quot; +
+<i>124</i>&nbsp;                            &quot;    &lt;script type=\&quot;text/javascript\&quot;&gt;\n&quot; +
+<i>125</i>&nbsp;                            &quot;        function gohome() {\n&quot; +
+<i>126</i>&nbsp;                            &quot;            window.location = \&quot;/maven_webmail/\&quot;\n&quot; +
+<i>127</i>&nbsp;                            &quot;        }\n&quot; +
+<i>128</i>&nbsp;                            &quot;    &lt;/script&gt;\n&quot; +
+<i>129</i>&nbsp;                            &quot;&lt;/head&gt;\n&quot; +
+<i>130</i>&nbsp;                            &quot;&lt;body onload=\&quot;setTimeout(&#39;gohome()&#39;, 5000)\&quot;&gt;\n&quot; +
+<i>131</i>&nbsp;                            userId + &quot;님 회원탈퇴에 실패하였습니다... 서버에 오류가 있습니다...\n&quot; +
+<i>132</i>&nbsp;                            &quot;\n&quot; +
+<i>133</i>&nbsp;                            &quot;5초후 메인화면으로 돌아갑니다.&quot; +
+<i>134</i>&nbsp;                            &quot;&lt;/body&gt;&quot;);
+<i>135</i>&nbsp;                }
+<i>136</i>&nbsp;                //제임스 서버 오류
+<i>137</i>&nbsp;            }
+<b class="fc"><i>138</i>&nbsp;        } else {</b>
+<b class="nc"><i>139</i>&nbsp;            try (PrintWriter out = response.getWriter()) {</b>
+<b class="nc"><i>140</i>&nbsp;                out.println(&quot;&lt;head&gt;\n&quot; +</b>
+<i>141</i>&nbsp;                        &quot;    &lt;meta charset=\&quot;UTF-8\&quot;&gt;\n&quot; +
+<i>142</i>&nbsp;                        &quot;    &lt;title&gt;회원탈퇴 실패&lt;/title&gt;\n&quot; +
+<i>143</i>&nbsp;                        &quot;    &lt;script type=\&quot;text/javascript\&quot;&gt;\n&quot; +
+<i>144</i>&nbsp;                        &quot;        function gohome() {\n&quot; +
+<i>145</i>&nbsp;                        &quot;            window.location = \&quot;/maven_webmail/\&quot;\n&quot; +
+<i>146</i>&nbsp;                        &quot;        }\n&quot; +
+<i>147</i>&nbsp;                        &quot;    &lt;/script&gt;\n&quot; +
+<i>148</i>&nbsp;                        &quot;&lt;/head&gt;\n&quot; +
+<i>149</i>&nbsp;                        &quot;&lt;body onload=\&quot;setTimeout(&#39;gohome()&#39;, 5000)\&quot;&gt;\n&quot; +
+<i>150</i>&nbsp;                        userId + &quot;님 회원탈퇴에 실패하였습니다... 서버에 오류가 있습니다...\n&quot; +
+<i>151</i>&nbsp;                        &quot;\n&quot; +
+<i>152</i>&nbsp;                        &quot;5초후 메인화면으로 돌아갑니다.&quot; +
+<i>153</i>&nbsp;                        &quot;&lt;/body&gt;&quot;);
+<i>154</i>&nbsp;            }
+<i>155</i>&nbsp;            //디비 오류
+<i>156</i>&nbsp;        }
+<b class="fc"><i>157</i>&nbsp;    }</b>
+<i>158</i>&nbsp;
+<i>159</i>&nbsp;    private void changeMyInfo(HttpServletRequest request, HttpServletResponse response) throws IOException {
+<b class="fc"><i>160</i>&nbsp;        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();</b>
+<b class="fc"><i>161</i>&nbsp;        String phoneNumber = request.getParameter(&quot;phoneNumber&quot;);</b>
+<b class="fc"><i>162</i>&nbsp;        String name = request.getParameter(&quot;name&quot;);</b>
+<b class="fc"><i>163</i>&nbsp;        String birthdayString = request.getParameter(&quot;birthday&quot;);</b>
+<b class="fc"><i>164</i>&nbsp;        String userId = request.getParameter(USER_ID);</b>
+<b class="fc"><i>165</i>&nbsp;        userDatabaseAgent.setBirthdayString(birthdayString);</b>
+<b class="fc"><i>166</i>&nbsp;        userDatabaseAgent.setName(name);</b>
+<b class="fc"><i>167</i>&nbsp;        userDatabaseAgent.setPhoneNumber(phoneNumber);</b>
+<b class="fc"><i>168</i>&nbsp;        userDatabaseAgent.setUserId(userId);</b>
+<b class="pc"><i>169</i>&nbsp;        if (userDatabaseAgent.changeMyInfo()) {</b>
+<b class="fc"><i>170</i>&nbsp;            response.sendRedirect(&quot;my_info.jsp&quot;);</b>
+<i>171</i>&nbsp;        } else {
+<b class="nc"><i>172</i>&nbsp;            try (PrintWriter out = response.getWriter()) {</b>
+<b class="nc"><i>173</i>&nbsp;                out.println(&quot;오류가 발생했습니다.&quot;);</b>
+<i>174</i>&nbsp;            }
+<i>175</i>&nbsp;        }
+<b class="fc"><i>176</i>&nbsp;    }</b>
+<i>177</i>&nbsp;
+<i>178</i>&nbsp;    private void addUser(HttpServletRequest request, HttpServletResponse response) throws Exception {
+<b class="fc"><i>179</i>&nbsp;        UserAdminAgent userAdminAgent = new UserAdminAgent();</b>
+<b class="fc"><i>180</i>&nbsp;        userAdminAgent.setCwd(path);</b>
+<b class="fc"><i>181</i>&nbsp;        userAdminAgent.setPort(port);</b>
+<b class="fc"><i>182</i>&nbsp;        userAdminAgent.setServer(host);</b>
+<b class="fc"><i>183</i>&nbsp;        String phoneNumber = request.getParameter(&quot;phoneNumber&quot;);</b>
+<b class="fc"><i>184</i>&nbsp;        String name = request.getParameter(&quot;name&quot;);</b>
+<b class="fc"><i>185</i>&nbsp;        String birthdayString = request.getParameter(&quot;birthday&quot;);</b>
+<b class="fc"><i>186</i>&nbsp;        String userId = request.getParameter(USER_ID);</b>
+<b class="fc"><i>187</i>&nbsp;        String password = request.getParameter(&quot;password&quot;);</b>
+<b class="fc"><i>188</i>&nbsp;        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();</b>
+<b class="pc"><i>189</i>&nbsp;        if (userAdminAgent.addUser(userId, password)) {</b>
+<b class="fc"><i>190</i>&nbsp;            try (PrintWriter out = response.getWriter()) {</b>
+<b class="fc"><i>191</i>&nbsp;                userDatabaseAgent.setBirthdayString(birthdayString);</b>
+<b class="fc"><i>192</i>&nbsp;                userDatabaseAgent.setName(name);</b>
+<b class="fc"><i>193</i>&nbsp;                userDatabaseAgent.setPhoneNumber(phoneNumber);</b>
+<b class="fc"><i>194</i>&nbsp;                userDatabaseAgent.setUserId(userId);</b>
+<b class="pc"><i>195</i>&nbsp;                if (userDatabaseAgent.insert()) {</b>
+<b class="fc"><i>196</i>&nbsp;                    out.print(&quot;register success.&quot;);</b>
+<i>197</i>&nbsp;                } else {
+<b class="nc"><i>198</i>&nbsp;                    out.print(&quot;register database error.&quot;);</b>
+<i>199</i>&nbsp;                }
+<i>200</i>&nbsp;            }
+<i>201</i>&nbsp;        } else {
+<b class="nc"><i>202</i>&nbsp;            try (PrintWriter out = response.getWriter()) {</b>
+<b class="nc"><i>203</i>&nbsp;                out.print(&quot;register server failed.&quot;);</b>
+<i>204</i>&nbsp;            }
+<i>205</i>&nbsp;        }
+<b class="fc"><i>206</i>&nbsp;    }</b>
+<i>207</i>&nbsp;
+<i>208</i>&nbsp;    /**
+<i>209</i>&nbsp;     * 사용자 중복 체크를 합니다.
+<i>210</i>&nbsp;     * @param request 요청
+<i>211</i>&nbsp;     * @param response 응답
+<i>212</i>&nbsp;     * @throws Exception
+<i>213</i>&nbsp;     */
+<i>214</i>&nbsp;    private void userVerify(HttpServletRequest request, HttpServletResponse response) throws Exception {
+<b class="fc"><i>215</i>&nbsp;        String userId = request.getParameter(USER_ID);</b>
+<b class="fc"><i>216</i>&nbsp;        logger.info(userId);</b>
+<b class="fc"><i>217</i>&nbsp;        UserAdminAgent userAdminAgent = new UserAdminAgent();</b>
+<b class="fc"><i>218</i>&nbsp;        userAdminAgent.setCwd(path);</b>
+<b class="fc"><i>219</i>&nbsp;        userAdminAgent.setPort(port);</b>
+<b class="fc"><i>220</i>&nbsp;        userAdminAgent.setServer(host);</b>
+<b class="fc"><i>221</i>&nbsp;        boolean status = userAdminAgent.verify(userId);</b>
+<b class="fc"><i>222</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="fc"><i>223</i>&nbsp;            if (status) {</b>
+<b class="fc"><i>224</i>&nbsp;                out.print(&quot;fail&quot;);</b>
+<i>225</i>&nbsp;            } else {
+<b class="fc"><i>226</i>&nbsp;                out.print(&quot;success&quot;);</b>
+<i>227</i>&nbsp;            }
+<i>228</i>&nbsp;        }
+<b class="fc"><i>229</i>&nbsp;    }</b>
+<i>230</i>&nbsp;
+<i>231</i>&nbsp;    /**
+<i>232</i>&nbsp;     * 아이디 찾기를 합니다.
+<i>233</i>&nbsp;     * @param request 요청
+<i>234</i>&nbsp;     * @param response 응답
+<i>235</i>&nbsp;     * @throws IOException
+<i>236</i>&nbsp;     */
+<i>237</i>&nbsp;    private void findID(HttpServletRequest request, HttpServletResponse response) throws IOException {
+<b class="fc"><i>238</i>&nbsp;        String phoneNumber = request.getParameter(&quot;phoneNumber&quot;);</b>
+<b class="fc"><i>239</i>&nbsp;        String name = request.getParameter(&quot;name&quot;);</b>
+<b class="fc"><i>240</i>&nbsp;        String birthdayString = request.getParameter(&quot;birthday&quot;);</b>
+<b class="fc"><i>241</i>&nbsp;        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();</b>
+<b class="fc"><i>242</i>&nbsp;        userDatabaseAgent.setPhoneNumber(phoneNumber);</b>
+<b class="fc"><i>243</i>&nbsp;        userDatabaseAgent.setName(name);</b>
+<b class="fc"><i>244</i>&nbsp;        userDatabaseAgent.setBirthdayString(birthdayString);</b>
+<b class="fc"><i>245</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="fc"><i>246</i>&nbsp;            out.print(userDatabaseAgent.findId());</b>
+<i>247</i>&nbsp;        }
+<b class="fc"><i>248</i>&nbsp;    }</b>
+<i>249</i>&nbsp;
+<i>250</i>&nbsp;    /**
+<i>251</i>&nbsp;     * 비밀번호 찾기를 합니다.
+<i>252</i>&nbsp;     * @param request 요청
+<i>253</i>&nbsp;     * @param response 응답
+<i>254</i>&nbsp;     * @throws IOException
+<i>255</i>&nbsp;     */
+<i>256</i>&nbsp;    private void findPassword(HttpServletRequest request, HttpServletResponse response) throws IOException {
+<b class="fc"><i>257</i>&nbsp;        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();</b>
+<b class="fc"><i>258</i>&nbsp;        String phoneNumber = request.getParameter(&quot;phoneNumber&quot;);</b>
+<b class="fc"><i>259</i>&nbsp;        String name = request.getParameter(&quot;name&quot;);</b>
+<b class="fc"><i>260</i>&nbsp;        String birthdayString = request.getParameter(&quot;birthday&quot;);</b>
+<b class="fc"><i>261</i>&nbsp;        String userId = request.getParameter(&quot;userId&quot;);</b>
+<b class="fc"><i>262</i>&nbsp;        userDatabaseAgent.setPhoneNumber(phoneNumber);</b>
+<b class="fc"><i>263</i>&nbsp;        userDatabaseAgent.setName(name);</b>
+<b class="fc"><i>264</i>&nbsp;        userDatabaseAgent.setBirthdayString(birthdayString);</b>
+<b class="fc"><i>265</i>&nbsp;        userDatabaseAgent.setUserId(userId);</b>
+<b class="fc"><i>266</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="fc"><i>267</i>&nbsp;            out.print(&quot;findPassword &quot; + userDatabaseAgent.findPassword());</b>
+<i>268</i>&nbsp;        }
+<b class="fc"><i>269</i>&nbsp;    }</b>
+<i>270</i>&nbsp;
+<i>271</i>&nbsp;    /**
+<i>272</i>&nbsp;     * 비밀번호를 변경합니다.
+<i>273</i>&nbsp;     * @param request 요청
+<i>274</i>&nbsp;     * @param response 응답
+<i>275</i>&nbsp;     * @throws Exception
+<i>276</i>&nbsp;     */
+<i>277</i>&nbsp;    private void changePassword(HttpServletRequest request, HttpServletResponse response) throws Exception {
+<b class="fc"><i>278</i>&nbsp;        String userId = request.getParameter(&quot;userId&quot;);</b>
+<b class="fc"><i>279</i>&nbsp;        String password = request.getParameter(&quot;password&quot;);</b>
+<b class="fc"><i>280</i>&nbsp;        UserAdminAgent userAdminAgent = new UserAdminAgent();</b>
+<b class="fc"><i>281</i>&nbsp;        userAdminAgent.setCwd(path);</b>
+<b class="fc"><i>282</i>&nbsp;        userAdminAgent.setPort(port);</b>
+<b class="fc"><i>283</i>&nbsp;        userAdminAgent.setServer(host);</b>
+<b class="fc"><i>284</i>&nbsp;        try (PrintWriter out = response.getWriter()) {</b>
+<b class="pc"><i>285</i>&nbsp;            if (userAdminAgent.setPassword(userId, password)) {</b>
+<b class="fc"><i>286</i>&nbsp;                out.print(&quot;password change success&quot;);</b>
+<i>287</i>&nbsp;            } else {
+<b class="nc"><i>288</i>&nbsp;                out.print(&quot;password change failed&quot;);</b>
+<i>289</i>&nbsp;            }
+<i>290</i>&nbsp;        }
+<i>291</i>&nbsp;
+<b class="fc"><i>292</i>&nbsp;    }</b>
+<i>293</i>&nbsp;
+<i>294</i>&nbsp;    @Override
+<i>295</i>&nbsp;    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+<i>296</i>&nbsp;        try {
+<b class="nc"><i>297</i>&nbsp;            processRequest(req, resp);</b>
+<b class="nc"><i>298</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i>299</i>&nbsp;            logger.error(e.getMessage());</b>
+<b class="nc"><i>300</i>&nbsp;        }</b>
+<b class="nc"><i>301</i>&nbsp;    }</b>
+<i>302</i>&nbsp;
+<i>303</i>&nbsp;    @Override
+<i>304</i>&nbsp;    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+<i>305</i>&nbsp;        try {
+<b class="fc"><i>306</i>&nbsp;            processRequest(req, resp);</b>
+<b class="nc"><i>307</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i>308</i>&nbsp;            logger.error(e.getMessage());</b>
+<b class="fc"><i>309</i>&nbsp;        }</b>
+<b class="fc"><i>310</i>&nbsp;    }</b>
+<i>311</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>

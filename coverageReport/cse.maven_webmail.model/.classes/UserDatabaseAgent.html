@@ -1,0 +1,349 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: UserDatabaseAgent</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">cse.maven_webmail.model</a> ]
+</div>
+
+<h1>Coverage Summary for Class: UserDatabaseAgent (cse.maven_webmail.model)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UserDatabaseAgent</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (13/ 13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.9%
+  </span>
+  <span class="absValue">
+    (149/ 164)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package cse.maven_webmail.model;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import cse.maven_webmail.control.CommandType;
+<i>4</i>&nbsp;import org.slf4j.Logger;
+<i>5</i>&nbsp;import org.slf4j.LoggerFactory;
+<i>6</i>&nbsp;
+<i>7</i>&nbsp;import javax.naming.NamingException;
+<i>8</i>&nbsp;import java.sql.*;
+<i>9</i>&nbsp;import java.util.LinkedList;
+<i>10</i>&nbsp;import java.util.List;
+<i>11</i>&nbsp;
+<i>12</i>&nbsp;/**
+<i>13</i>&nbsp; * 유저의 개인 정보 데이터베이스를 관리하는 객체입니다.
+<i>14</i>&nbsp; */
+<i>15</i>&nbsp;public class UserDatabaseAgent {
+<i>16</i>&nbsp;    private String userId;
+<i>17</i>&nbsp;    private String name;
+<i>18</i>&nbsp;    private Date birthday;
+<i>19</i>&nbsp;    private String phoneNumber;
+<b class="fc"><i>20</i>&nbsp;    private static Logger logger = LoggerFactory.getLogger(UserDatabaseAgent.class);</b>
+<i>21</i>&nbsp;
+<b class="fc"><i>22</i>&nbsp;    public UserDatabaseAgent() {</b>
+<i>23</i>&nbsp;        //빈 생성자
+<b class="fc"><i>24</i>&nbsp;    }</b>
+<i>25</i>&nbsp;
+<i>26</i>&nbsp;    public void setUserId(String userId) {
+<b class="fc"><i>27</i>&nbsp;        this.userId = userId;</b>
+<b class="fc"><i>28</i>&nbsp;    }</b>
+<i>29</i>&nbsp;
+<i>30</i>&nbsp;    public void setBirthdayString(String birthdayString) {
+<b class="fc"><i>31</i>&nbsp;        this.birthday = Date.valueOf(birthdayString);</b>
+<b class="fc"><i>32</i>&nbsp;    }</b>
+<i>33</i>&nbsp;
+<i>34</i>&nbsp;    public void setName(String name) {
+<b class="fc"><i>35</i>&nbsp;        this.name = name;</b>
+<b class="fc"><i>36</i>&nbsp;    }</b>
+<i>37</i>&nbsp;
+<i>38</i>&nbsp;
+<i>39</i>&nbsp;    public void setPhoneNumber(String phoneNumber) {
+<b class="fc"><i>40</i>&nbsp;        this.phoneNumber = phoneNumber;</b>
+<b class="fc"><i>41</i>&nbsp;    }</b>
+<i>42</i>&nbsp;
+<i>43</i>&nbsp;    /**
+<i>44</i>&nbsp;     * 개인정보를 삽입합니다.
+<i>45</i>&nbsp;     * @return 성공 여부
+<i>46</i>&nbsp;     */
+<i>47</i>&nbsp;    public boolean insert() {
+<i>48</i>&nbsp;        boolean status;
+<b class="fc"><i>49</i>&nbsp;        String query = &quot;INSERT INTO USERINFO(USERNAME, NAME, PHONE, BIRTHDAY) VALUES(?, ?, ?, ?)&quot;;</b>
+<i>50</i>&nbsp;        try {
+<b class="fc"><i>51</i>&nbsp;            try (Connection connection = getConnection();</b>
+<b class="fc"><i>52</i>&nbsp;                 PreparedStatement preparedStatement = connection.prepareStatement(query);</b>
+<i>53</i>&nbsp;            ) {
+<b class="fc"><i>54</i>&nbsp;                logger.trace(&quot;userId : &quot; + userId);</b>
+<b class="fc"><i>55</i>&nbsp;                logger.trace(&quot;name : &quot; + name);</b>
+<b class="fc"><i>56</i>&nbsp;                logger.trace(&quot;phoneNumber : &quot; + phoneNumber);</b>
+<b class="fc"><i>57</i>&nbsp;                logger.trace(&quot;birthday : &quot; + birthday.toString());</b>
+<b class="fc"><i>58</i>&nbsp;                preparedStatement.setString(1, userId);</b>
+<b class="fc"><i>59</i>&nbsp;                preparedStatement.setString(2, name);</b>
+<b class="fc"><i>60</i>&nbsp;                preparedStatement.setString(3, phoneNumber);</b>
+<b class="fc"><i>61</i>&nbsp;                preparedStatement.setDate(4, birthday);</b>
+<b class="fc"><i>62</i>&nbsp;                int num = preparedStatement.executeUpdate();</b>
+<b class="pc"><i>63</i>&nbsp;                status = num == 1;</b>
+<i>64</i>&nbsp;            }
+<b class="nc"><i>65</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>66</i>&nbsp;            logger.error(throwables.getMessage());</b>
+<b class="nc"><i>67</i>&nbsp;            status = false;</b>
+<b class="fc"><i>68</i>&nbsp;        }</b>
+<b class="fc"><i>69</i>&nbsp;        return status;</b>
+<i>70</i>&nbsp;    }
+<i>71</i>&nbsp;
+<i>72</i>&nbsp;    /**
+<i>73</i>&nbsp;     * 디비 연결을 반환합니다.
+<i>74</i>&nbsp;     * @return 디비 연결
+<i>75</i>&nbsp;     * @throws NamingException JDBC 찾기 실패했을 때
+<i>76</i>&nbsp;     * @throws SQLException SQL 오류
+<i>77</i>&nbsp;     */
+<i>78</i>&nbsp;    private Connection getConnection() throws NamingException, SQLException {
+<b class="fc"><i>79</i>&nbsp;        String name = &quot;java:/comp/env/jdbc/JamesWebmail&quot;;</b>
+<b class="fc"><i>80</i>&nbsp;        javax.naming.Context context = new javax.naming.InitialContext();</b>
+<b class="fc"><i>81</i>&nbsp;        javax.sql.DataSource dataSource = (javax.sql.DataSource) context.lookup(name);</b>
+<b class="fc"><i>82</i>&nbsp;        return dataSource.getConnection();</b>
+<i>83</i>&nbsp;    }
+<i>84</i>&nbsp;
+<i>85</i>&nbsp;    /**
+<i>86</i>&nbsp;     * 정보를 바탕으로 아이디를 찾습니다.
+<i>87</i>&nbsp;     * @return 찾은 아이디
+<i>88</i>&nbsp;     */
+<i>89</i>&nbsp;    public String findId() {
+<i>90</i>&nbsp;        String result;
+<b class="fc"><i>91</i>&nbsp;        String query = &quot;SELECT USERNAME FROM USERINFO WHERE NAME = ? AND PHONE = ? AND BIRTHDAY = ?&quot;;</b>
+<b class="fc"><i>92</i>&nbsp;        List&lt;String&gt; idLists = new LinkedList&lt;&gt;();</b>
+<b class="fc"><i>93</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>94</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(query);</b>
+<i>95</i>&nbsp;        ) {
+<b class="fc"><i>96</i>&nbsp;            preparedStatement.setString(1, name);</b>
+<b class="fc"><i>97</i>&nbsp;            preparedStatement.setString(2, phoneNumber);</b>
+<b class="fc"><i>98</i>&nbsp;            preparedStatement.setDate(3, birthday);</b>
+<b class="fc"><i>99</i>&nbsp;            try (ResultSet resultSet = preparedStatement.executeQuery()) {</b>
+<b class="fc"><i>100</i>&nbsp;                while (resultSet.next()) {</b>
+<b class="fc"><i>101</i>&nbsp;                    idLists.add(resultSet.getString(1));</b>
+<i>102</i>&nbsp;                }
+<i>103</i>&nbsp;            }
+<b class="pc"><i>104</i>&nbsp;            if (idLists.isEmpty()) {</b>
+<b class="nc"><i>105</i>&nbsp;                result = &quot;failed&quot;;</b>
+<i>106</i>&nbsp;            } else {
+<b class="fc"><i>107</i>&nbsp;                result = String.join(&quot;, &quot;, idLists);</b>
+<i>108</i>&nbsp;            }
+<b class="nc"><i>109</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>110</i>&nbsp;            logger.error(throwables.getMessage());</b>
+<b class="nc"><i>111</i>&nbsp;            result = &quot;database error&quot;;</b>
+<b class="fc"><i>112</i>&nbsp;        }</b>
+<b class="fc"><i>113</i>&nbsp;        logger.info(&quot;findId : {}&quot;, result);</b>
+<b class="fc"><i>114</i>&nbsp;        return result;</b>
+<i>115</i>&nbsp;    }
+<i>116</i>&nbsp;
+<i>117</i>&nbsp;    /**
+<i>118</i>&nbsp;     * 정보를 바탕으로 일치하는 회원이 있는지 찾습니다.
+<i>119</i>&nbsp;     * @return 찾았을 경우
+<i>120</i>&nbsp;     */
+<i>121</i>&nbsp;    public boolean findPassword() {
+<b class="fc"><i>122</i>&nbsp;        boolean success = false;</b>
+<b class="fc"><i>123</i>&nbsp;        String query = &quot;SELECT 1 FROM USERINFO WHERE NAME = ? AND PHONE = ? AND BIRTHDAY = ? AND USERNAME = ?&quot;;</b>
+<b class="fc"><i>124</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>125</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(query);</b>
+<i>126</i>&nbsp;        ) {
+<b class="fc"><i>127</i>&nbsp;            preparedStatement.setString(1, name);</b>
+<b class="fc"><i>128</i>&nbsp;            preparedStatement.setString(2, phoneNumber);</b>
+<b class="fc"><i>129</i>&nbsp;            preparedStatement.setDate(3, birthday);</b>
+<b class="fc"><i>130</i>&nbsp;            preparedStatement.setString(4, userId);</b>
+<b class="fc"><i>131</i>&nbsp;            try (ResultSet resultSet = preparedStatement.executeQuery()) {</b>
+<b class="fc"><i>132</i>&nbsp;                if (resultSet.next()) {</b>
+<b class="fc"><i>133</i>&nbsp;                    success = true;</b>
+<i>134</i>&nbsp;                }
+<i>135</i>&nbsp;            }
+<i>136</i>&nbsp;
+<b class="nc"><i>137</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>138</i>&nbsp;            logger.error(throwables.getMessage());</b>
+<b class="nc"><i>139</i>&nbsp;            success = false;</b>
+<b class="fc"><i>140</i>&nbsp;        }</b>
+<b class="fc"><i>141</i>&nbsp;        logger.info(&quot;findPassword : id {} isSuccess : {}&quot;, userId, success);</b>
+<b class="fc"><i>142</i>&nbsp;        return success;</b>
+<i>143</i>&nbsp;    }
+<i>144</i>&nbsp;
+<i>145</i>&nbsp;    /**
+<i>146</i>&nbsp;     * 정보를 바탕으로 개인정보를 변경합니다.
+<i>147</i>&nbsp;     * @return 개인정보 변경 성공 여부
+<i>148</i>&nbsp;     */
+<i>149</i>&nbsp;    public boolean changeMyInfo() {
+<i>150</i>&nbsp;        boolean success;
+<b class="fc"><i>151</i>&nbsp;        String sql = &quot;UPDATE userinfo SET NAME = ?, PHONE = ?, BIRTHDAY = ? WHERE USERNAME = ?&quot;;</b>
+<b class="fc"><i>152</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>153</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(sql);</b>
+<i>154</i>&nbsp;        ) {
+<b class="fc"><i>155</i>&nbsp;            preparedStatement.setString(1, name);</b>
+<b class="fc"><i>156</i>&nbsp;            preparedStatement.setString(2, phoneNumber);</b>
+<b class="fc"><i>157</i>&nbsp;            preparedStatement.setDate(3, birthday);</b>
+<b class="fc"><i>158</i>&nbsp;            preparedStatement.setString(4, userId);</b>
+<b class="fc"><i>159</i>&nbsp;            int updates = preparedStatement.executeUpdate();</b>
+<b class="pc"><i>160</i>&nbsp;            success = updates == 1;</b>
+<b class="nc"><i>161</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>162</i>&nbsp;            success = false;</b>
+<b class="nc"><i>163</i>&nbsp;            logger.error(throwables.getMessage());</b>
+<b class="fc"><i>164</i>&nbsp;        }</b>
+<b class="fc"><i>165</i>&nbsp;        return success;</b>
+<i>166</i>&nbsp;    }
+<i>167</i>&nbsp;
+<i>168</i>&nbsp;    /**
+<i>169</i>&nbsp;     * 개인정보를 조회할 때 개인정보를 반환합니다.
+<i>170</i>&nbsp;     * @return 개인정보 테이블
+<i>171</i>&nbsp;     */
+<i>172</i>&nbsp;    public String getUserData() {
+<b class="fc"><i>173</i>&nbsp;        StringBuilder stringBuilder = new StringBuilder();</b>
+<b class="fc"><i>174</i>&nbsp;        String sql = &quot;SELECT NAME, PHONE, BIRTHDAY FROM userinfo where username = ?&quot;;</b>
+<b class="fc"><i>175</i>&nbsp;        stringBuilder.append(&quot;&lt;h2&gt;&quot;).append(userId).append(&quot;님의 개인정보&quot;).append(&quot;&lt;/h2&gt;&quot;);</b>
+<b class="fc"><i>176</i>&nbsp;        stringBuilder.append(&quot;&lt;table&gt;&quot;);</b>
+<b class="fc"><i>177</i>&nbsp;        stringBuilder.append(&quot;&lt;form action=\&quot;userHandle.do\&quot; method=\&quot;POST\&quot;&gt;&quot;);</b>
+<b class="fc"><i>178</i>&nbsp;        stringBuilder.append(&quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;menu\&quot; value=\&quot;&quot;);</b>
+<b class="fc"><i>179</i>&nbsp;        stringBuilder.append(CommandType.CHANGE_MY_INFO);</b>
+<b class="fc"><i>180</i>&nbsp;        stringBuilder.append(&quot;\&quot;&gt;&quot;);</b>
+<b class="fc"><i>181</i>&nbsp;        stringBuilder.append(&quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;userId\&quot; value=\&quot;&quot;);</b>
+<b class="fc"><i>182</i>&nbsp;        stringBuilder.append(userId).append(&quot;\&quot;&gt;&quot;);</b>
+<i>183</i>&nbsp;
+<b class="fc"><i>184</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>185</i>&nbsp;             PreparedStatement preparedStatement = connection.prepareStatement(sql);</b>
+<i>186</i>&nbsp;        ) {
+<b class="fc"><i>187</i>&nbsp;            preparedStatement.setString(1, userId);</b>
+<b class="fc"><i>188</i>&nbsp;            try (ResultSet resultset = preparedStatement.executeQuery()) {</b>
+<b class="fc"><i>189</i>&nbsp;                resultset.next();</b>
+<b class="fc"><i>190</i>&nbsp;                stringBuilder.append(&quot;&lt;tr&gt;&quot;);</b>
+<b class="fc"><i>191</i>&nbsp;                stringBuilder.append(&quot;&lt;td&gt;&quot;);</b>
+<b class="fc"><i>192</i>&nbsp;                stringBuilder.append(&quot;이름&quot;);</b>
+<b class="fc"><i>193</i>&nbsp;                stringBuilder.append(&quot;&lt;/td&gt;&quot;);</b>
+<b class="fc"><i>194</i>&nbsp;                stringBuilder.append(&quot;&lt;td&gt;&lt;input name=\&quot;name\&quot; value=\&quot;&quot;);</b>
+<b class="fc"><i>195</i>&nbsp;                stringBuilder.append(resultset.getString(1));</b>
+<b class="fc"><i>196</i>&nbsp;                stringBuilder.append(&quot;\&quot;&gt;&quot;);</b>
+<b class="fc"><i>197</i>&nbsp;                stringBuilder.append(&quot;&lt;/td&gt;&quot;);</b>
+<b class="fc"><i>198</i>&nbsp;                stringBuilder.append(&quot;&lt;/tr&gt;&quot;);</b>
+<b class="fc"><i>199</i>&nbsp;                stringBuilder.append(&quot;&lt;tr&gt;&quot;);</b>
+<b class="fc"><i>200</i>&nbsp;                stringBuilder.append(&quot;&lt;td&gt;&quot;);</b>
+<b class="fc"><i>201</i>&nbsp;                stringBuilder.append(&quot;폰번호&quot;);</b>
+<b class="fc"><i>202</i>&nbsp;                stringBuilder.append(&quot;&lt;/td&gt;&quot;);</b>
+<b class="fc"><i>203</i>&nbsp;                stringBuilder.append(&quot;&lt;td&gt;&lt;input name=\&quot;phoneNumber\&quot; value=\&quot;&quot;);</b>
+<b class="fc"><i>204</i>&nbsp;                stringBuilder.append(resultset.getString(2));</b>
+<b class="fc"><i>205</i>&nbsp;                stringBuilder.append(&quot;\&quot;&gt;&quot;);</b>
+<b class="fc"><i>206</i>&nbsp;                stringBuilder.append(&quot;&lt;/td&gt;&quot;);</b>
+<b class="fc"><i>207</i>&nbsp;                stringBuilder.append(&quot;&lt;/tr&gt;&quot;);</b>
+<b class="fc"><i>208</i>&nbsp;                stringBuilder.append(&quot;&lt;tr&gt;&quot;);</b>
+<b class="fc"><i>209</i>&nbsp;                stringBuilder.append(&quot;&lt;td&gt;&quot;);</b>
+<b class="fc"><i>210</i>&nbsp;                stringBuilder.append(&quot;생일&quot;);</b>
+<b class="fc"><i>211</i>&nbsp;                stringBuilder.append(&quot;&lt;/td&gt;&quot;);</b>
+<b class="fc"><i>212</i>&nbsp;                stringBuilder.append(&quot;&lt;td&gt;&lt;input id=\&quot;birthday\&quot; name=\&quot;birthday\&quot; value=\&quot;&quot;);</b>
+<b class="fc"><i>213</i>&nbsp;                stringBuilder.append(resultset.getDate(3).toString());</b>
+<b class="fc"><i>214</i>&nbsp;                stringBuilder.append(&quot;\&quot;&gt;&quot;);</b>
+<b class="fc"><i>215</i>&nbsp;                stringBuilder.append(&quot;&lt;/td&gt;&quot;);</b>
+<b class="fc"><i>216</i>&nbsp;                stringBuilder.append(&quot;&lt;/tr&gt;&quot;);</b>
+<i>217</i>&nbsp;            }
+<b class="fc"><i>218</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="fc"><i>219</i>&nbsp;            logger.error(throwables.getMessage());</b>
+<b class="fc"><i>220</i>&nbsp;            return &quot;오류가 발생했습니다.&quot;;</b>
+<b class="fc"><i>221</i>&nbsp;        }</b>
+<b class="fc"><i>222</i>&nbsp;        stringBuilder.append(&quot;&lt;/table&gt;&quot;);</b>
+<b class="fc"><i>223</i>&nbsp;        stringBuilder.append(&quot;&lt;input type=\&quot;submit\&quot; value=\&quot;변경하기\&quot;&gt;&quot;);</b>
+<b class="fc"><i>224</i>&nbsp;        stringBuilder.append(&quot;&lt;/form&gt;&quot;);</b>
+<b class="fc"><i>225</i>&nbsp;        stringBuilder.append(&quot;&lt;form action=\&quot;userHandle.do\&quot; method=\&quot;POST\&quot;&gt;&quot;);</b>
+<b class="fc"><i>226</i>&nbsp;        stringBuilder.append(&quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;menu\&quot; value=\&quot;&quot;).append(CommandType.DELETE_USER_COMMAND).append(&quot;\&quot;&gt;&quot;);</b>
+<b class="fc"><i>227</i>&nbsp;        stringBuilder.append(&quot;&lt;input type=\&quot;hidden\&quot; name=\&quot;userId\&quot; value=\&quot;&quot;).append(userId).append(&quot;\&quot;&gt;&quot;);</b>
+<b class="fc"><i>228</i>&nbsp;        stringBuilder.append(&quot;&lt;input type=\&quot;submit\&quot; value=\&quot;탈퇴하기\&quot;&gt;&quot;);</b>
+<b class="fc"><i>229</i>&nbsp;        stringBuilder.append(&quot;&lt;/form&gt;&quot;);</b>
+<b class="fc"><i>230</i>&nbsp;        return stringBuilder.toString();</b>
+<i>231</i>&nbsp;    }
+<i>232</i>&nbsp;
+<i>233</i>&nbsp;    /**
+<i>234</i>&nbsp;     * 회원을 삭제합니다.
+<i>235</i>&nbsp;     * @return 회원삭제 성공여부
+<i>236</i>&nbsp;     */
+<i>237</i>&nbsp;    public boolean deleteUser() {
+<b class="fc"><i>238</i>&nbsp;        boolean status = false;</b>
+<b class="fc"><i>239</i>&nbsp;        String sql = &quot;DELETE FROM userinfo WHERE USERNAME = ?&quot;;</b>
+<b class="fc"><i>240</i>&nbsp;        String inboxDeleteSql = &quot;DELETE FROM inbox WHERE repository_name = ?&quot;;</b>
+<b class="fc"><i>241</i>&nbsp;        String trashDeleteSql = &quot;DELETE FROM trash WHERE repository_name = ?&quot;;</b>
+<b class="fc"><i>242</i>&nbsp;        AddressBookAgent addressBookAgent = new AddressBookAgent();</b>
+<b class="fc"><i>243</i>&nbsp;        addressBookAgent.setUserId(userId);</b>
+<b class="fc"><i>244</i>&nbsp;        addressBookAgent.deleteAll();</b>
+<b class="fc"><i>245</i>&nbsp;        try (Connection connection = getConnection();</b>
+<b class="fc"><i>246</i>&nbsp;             PreparedStatement userInfoDeleteStatement = connection.prepareStatement(sql);</b>
+<b class="fc"><i>247</i>&nbsp;             PreparedStatement inboxDeleteStatement = connection.prepareStatement(inboxDeleteSql);</b>
+<b class="fc"><i>248</i>&nbsp;             PreparedStatement trashDeleteStatement = connection.prepareStatement(trashDeleteSql);</b>
+<i>249</i>&nbsp;        ) {
+<b class="fc"><i>250</i>&nbsp;            userInfoDeleteStatement.setString(1, userId);</b>
+<b class="fc"><i>251</i>&nbsp;            inboxDeleteStatement.setString(1, userId);</b>
+<b class="fc"><i>252</i>&nbsp;            trashDeleteStatement.setString(1, userId);</b>
+<b class="fc"><i>253</i>&nbsp;            int rows = userInfoDeleteStatement.executeUpdate();</b>
+<b class="fc"><i>254</i>&nbsp;            logger.info(&quot;{}가 탈퇴해서 userinfo에서 삭제됨&quot;, userId);</b>
+<b class="fc"><i>255</i>&nbsp;            int inboxDeleted = inboxDeleteStatement.executeUpdate();</b>
+<b class="fc"><i>256</i>&nbsp;            logger.info(&quot;{}가 탈퇴해서 inbox에서 {}개의 메일이 삭제됨&quot;, userId, inboxDeleted);</b>
+<b class="fc"><i>257</i>&nbsp;            int trashDeleted = trashDeleteStatement.executeUpdate();</b>
+<b class="fc"><i>258</i>&nbsp;            logger.info(&quot;{}가 탈퇴해서 휴지통에서 {}개의 메일이 삭제됨&quot;, userId, trashDeleted);</b>
+<b class="fc"><i>259</i>&nbsp;            status = true;</b>
+<b class="nc"><i>260</i>&nbsp;        } catch (SQLException | NamingException throwables) {</b>
+<b class="nc"><i>261</i>&nbsp;            logger.error(throwables.getMessage());</b>
+<b class="fc"><i>262</i>&nbsp;        }</b>
+<b class="fc"><i>263</i>&nbsp;        logger.info(&quot;{}가 탈퇴 : {}&quot;, userId, status);</b>
+<b class="fc"><i>264</i>&nbsp;        return status;</b>
+<i>265</i>&nbsp;    }
+<i>266</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-06-14 21:34</div>
+</div>
+</body>
+</html>
