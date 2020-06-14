@@ -7,7 +7,8 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page isErrorPage="true" %>
-<html>
+<!DOCTYPE>
+<html lang="ko">
 <head>
     <title>오류가 발생했습니다.</title>
     <link type="text/css" rel="stylesheet" href="css/main_style.css"/>

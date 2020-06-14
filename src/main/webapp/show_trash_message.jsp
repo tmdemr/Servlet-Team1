@@ -9,7 +9,7 @@
 <jsp:useBean id="trashAgent" class="cse.maven_webmail.model.TrashMailAgent" scope="page"/>
 <jsp:setProperty name="trashAgent" property="messageName" value="${param.messageName}"/>
 <!DOCTYPE>
-<html>
+<html lang="ko">
 <head>
     <title>휴지통 내용 보기</title>
     <link type="text/css" rel="stylesheet" href="css/main_style.css"/>

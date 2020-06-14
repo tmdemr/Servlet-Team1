@@ -16,8 +16,13 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
+/**
+ * 유저 개인 정보 관련을 제어하는 클래스입니다.
+ * @see UserDatabaseAgent
+ */
 public class UserHandler extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserHandler.class);
+    private static final String USER_ID = "userId";
     private String path;
     private String host;
     private int port;
@@ -41,7 +46,12 @@ public class UserHandler extends HttpServlet {
         }
     }
 
-
+    /**
+     * 요청을 처리합니다.
+     * @param request 요청
+     * @param response 응답
+     * @throws Exception
+     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         response.setContentType("text/html;charset=UTF-8");
@@ -66,8 +76,10 @@ public class UserHandler extends HttpServlet {
                 break;
             case CommandType.CHANGE_MY_INFO:
                 changeMyInfo(request, response);
+                break;
             case CommandType.DELETE_USER_COMMAND:
                 userDelete(request, response);
+                break;
             default:
                 try (PrintWriter out = response.getWriter()) {
                     out.println("없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?");
@@ -78,7 +90,7 @@ public class UserHandler extends HttpServlet {
     }
 
     private void userDelete(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String userId = request.getParameter("userId");
+        String userId = request.getParameter(USER_ID);
         UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();
         userDatabaseAgent.setUserId(userId);
         if (userDatabaseAgent.deleteUser()) {
@@ -149,7 +161,7 @@ public class UserHandler extends HttpServlet {
         String phoneNumber = request.getParameter("phoneNumber");
         String name = request.getParameter("name");
         String birthdayString = request.getParameter("birthday");
-        String userId = request.getParameter("userId");
+        String userId = request.getParameter(USER_ID);
         userDatabaseAgent.setBirthdayString(birthdayString);
         userDatabaseAgent.setName(name);
         userDatabaseAgent.setPhoneNumber(phoneNumber);
@@ -171,7 +183,7 @@ public class UserHandler extends HttpServlet {
         String phoneNumber = request.getParameter("phoneNumber");
         String name = request.getParameter("name");
         String birthdayString = request.getParameter("birthday");
-        String userId = request.getParameter("userId");
+        String userId = request.getParameter(USER_ID);
         String password = request.getParameter("password");
         UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();
         if (userAdminAgent.addUser(userId, password)) {
@@ -193,8 +205,14 @@ public class UserHandler extends HttpServlet {
         }
     }
 
+    /**
+     * 사용자 중복 체크를 합니다.
+     * @param request 요청
+     * @param response 응답
+     * @throws Exception
+     */
     private void userVerify(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String userId = request.getParameter("userId");
+        String userId = request.getParameter(USER_ID);
         logger.info(userId);
         UserAdminAgent userAdminAgent = new UserAdminAgent();
         userAdminAgent.setCwd(path);
@@ -210,6 +228,12 @@ public class UserHandler extends HttpServlet {
         }
     }
 
+    /**
+     * 아이디 찾기를 합니다.
+     * @param request 요청
+     * @param response 응답
+     * @throws IOException
+     */
     private void findID(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String phoneNumber = request.getParameter("phoneNumber");
         String name = request.getParameter("name");
@@ -223,6 +247,12 @@ public class UserHandler extends HttpServlet {
         }
     }
 
+    /**
+     * 비밀번호 찾기를 합니다.
+     * @param request 요청
+     * @param response 응답
+     * @throws IOException
+     */
     private void findPassword(HttpServletRequest request, HttpServletResponse response) throws IOException {
         UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();
         String phoneNumber = request.getParameter("phoneNumber");
@@ -238,6 +268,12 @@ public class UserHandler extends HttpServlet {
         }
     }
 
+    /**
+     * 비밀번호를 변경합니다.
+     * @param request 요청
+     * @param response 응답
+     * @throws Exception
+     */
     private void changePassword(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String userId = request.getParameter("userId");
         String password = request.getParameter("password");

@@ -9,7 +9,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <jsp:useBean id="trashAgent" class="cse.maven_webmail.model.TrashMailAgent"/>
 <jsp:setProperty name="trashAgent" property="userId" value="${userid}"/>
-<html>
+<!DOCTYPE>
+<html lang="ko">
 <head>
     <title>휴지통</title>
     <link type="text/css" rel="stylesheet" href="css/main_style.css"/>
@@ -34,13 +35,14 @@
 
 <div id="main">
     <table border="1">
+        <caption>휴지통</caption>
         <tr>
-            <th>No.</th>
-            <th>보낸 사람</th>
-            <th>제목</th>
-            <th>보낸 날짜</th>
-            <th>삭제</th>
-            <th>복구</th>
+            <th id="no">No.</th>
+            <th id="sender">보낸 사람</th>
+            <th id="subject">제목</th>
+            <th id="date">보낸 날짜</th>
+            <th id="delete">삭제</th>
+            <th id="restore">복구</th>
         </tr>
         <c:forEach items="${trashAgent.results}" var="item">
             ${item}

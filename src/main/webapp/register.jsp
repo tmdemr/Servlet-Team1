@@ -193,8 +193,9 @@
 <h1>회원가입</h1>
 <input type="hidden" name="menu" value="${CommandType.ADD_USER_COMMAND}"/>
 <table border="0" align="left">
+    <caption>회원가입</caption>
     <tr>
-        <td>사용자 ID</td>
+        <th id="user">사용자 ID</th>
         <td><input type="text" id="userId" name="id" onkeyup="characterCheck()" maxlength="10"
                    onkeydown="characterCheck()" value="" size="20"/></td>
         <td>

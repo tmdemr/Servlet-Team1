@@ -5,6 +5,10 @@
 
 package cse.maven_webmail.control;
 
+/**
+ * 명령 타입을 정리한 클래스입니다.
+ * 모두 정적인 int로 되어 있습니다.
+ */
 public class CommandType {
     /**
      * 생성하지 마시오 - 남영우

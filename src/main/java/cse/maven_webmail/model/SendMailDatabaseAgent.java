@@ -12,15 +12,25 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 
+/**
+ * 보낸 메일함의 데이터베이스를 담당합니다.
+ */
 public class SendMailDatabaseAgent {
     private static final Logger logger = LoggerFactory.getLogger(SendMailDatabaseAgent.class);
     private String userId;
     private String messageId;
 
     public SendMailDatabaseAgent() {
-
+        //빈 생성자
     }
 
+    /**
+     * 보낸 메일을 데이터베이스에 넣습니다.
+     * @param smtpAgent SMTPAgent 객체
+     * @param messageId 메세지 ID
+     * @return 보낸 메일함에 넣기 성공 여부
+     * @throws NamingException DBCP 관련 오류
+     */
     public boolean sendMessageToDB(SmtpAgent smtpAgent, String messageId) throws NamingException {
         boolean status = false;
         String subject = smtpAgent.getSubj();
@@ -45,7 +55,7 @@ public class SendMailDatabaseAgent {
                 preparedStatement.setString(i++, null);
                 preparedStatement.setNull(i++, java.sql.Types.BLOB);
             } else {
-                int index = fileString.lastIndexOf('/');
+                int index = fileString.lastIndexOf(File.separator);
                 String fileName = fileString.substring(index + 1);
                 File file = new File(fileString);
                 fileInputStream = new FileInputStream(file);
@@ -77,6 +87,11 @@ public class SendMailDatabaseAgent {
         this.userId = userId;
     }
 
+    /**
+     * 보낸 메일들을 가져와서 table을 만듭니다.
+     * @return 보낸 메일의 table
+     * @throws NamingException DBCP 오류
+     */
     public String getMySendedMessages() throws NamingException {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<table border = 1>");
@@ -113,13 +128,23 @@ public class SendMailDatabaseAgent {
         return stringBuilder.toString();
     }
 
+    /**
+     * 메세지 id를 설정합니다.
+     * @param messageId messageId
+     */
     public void setMessageId(String messageId) {
-        this.messageId = messageId;
+        this.messageId = messageId.replace("&lt;","<").replace("&gt;",">");;
     }
 
+    /**
+     * 특정 보낸 메세지를 가져와서 보여주는 메소드입니다.
+     * @return 보낸 메일을 보기 좋게 보여줍니다.
+     * @throws NamingException DBCP 관련 오류
+     */
     public String getMessage() throws NamingException {
         StringBuilder stringBuilder = new StringBuilder();
         String query = "SELECT TOUSER, CC, SUBJECT, BODY, FILENAME, SENDED_TIME FROM sendedmessages WHERE MESSAGE_ID = ?";
+        logger.info("messageNo : {}", messageId);
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
         ) {
@@ -145,6 +170,12 @@ public class SendMailDatabaseAgent {
         return stringBuilder.toString();
     }
 
+    /**
+     * 보낸 메일함의 메일 다운로드를 수행하는 메소드입니다.
+     * @param directory 파일을 임시 다운로드 할 디렉터리
+     * @param fileName 파일 이름
+     * @throws NamingException DBCP 관련 오류
+     */
     public void download(String directory, String fileName) throws NamingException {
         String query = "SELECT FILE FROM sendedmessages WHERE MESSAGE_ID = ? AND USERID = ?";
         try (Connection connection = getConnection();
@@ -154,7 +185,7 @@ public class SendMailDatabaseAgent {
             preparedStatement.setString(2, userId);
             try (ResultSet resultSet = preparedStatement.executeQuery();) {
                 resultSet.next();
-                try (FileOutputStream fileOutputStream = new FileOutputStream(new File(directory + "/" + fileName));
+                try (FileOutputStream fileOutputStream = new FileOutputStream(new File(directory + File.separator + fileName));
                      InputStream inputStream = resultSet.getBinaryStream(1)) {
                     fileOutputStream.write(inputStream.readAllBytes());
 
@@ -165,6 +196,11 @@ public class SendMailDatabaseAgent {
         }
     }
 
+    /**
+     * 보낸 메일함의 메일을 삭제합니다.
+     * @return 삭제 성공 여부
+     * @throws NamingException DBCP 관련 오류
+     */
     public boolean delete() throws NamingException {
         boolean success = false;
 
@@ -187,6 +223,12 @@ public class SendMailDatabaseAgent {
         return success;
     }
 
+    /**
+     * DB 연결을 반환합니다.
+     * @return DB 연결
+     * @throws NamingException DBCP 오류
+     * @throws SQLException SQL 오류
+     */
     private Connection getConnection() throws NamingException, SQLException {
         String name = "java:/comp/env/jdbc/JamesWebmail";
         javax.naming.Context context = new javax.naming.InitialContext();

@@ -1,20 +1,15 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package cse.maven_webmail.model;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * 책임: enctype이 multipart/form-data인 HTML 폼에 있는 각 필드와 파일 정보 추출
@@ -29,7 +24,7 @@ public class FormParser {
     private String subject = null;
     private String body = null;
     private String fileName = null;
-    private final String uploadTargetDir = "C:/temp/upload";
+    private static final String UPLOAD_TARGET_DIR = "C:/temp/upload";
 
     public FormParser(HttpServletRequest request) {
         this.request = request;
@@ -84,12 +79,15 @@ public class FormParser {
     }
 
     private void checkFolder() {
-        File uploadTargetFolder = new File(uploadTargetDir);
+        File uploadTargetFolder = new File(UPLOAD_TARGET_DIR);
         if (!uploadTargetFolder.exists()) {
             uploadTargetFolder.mkdirs();
         }
     }
 
+    /**
+     * request를 파싱하는 메소드입니다.
+     */
     public void parse() {
         checkFolder(); // 폴더 없을 경우 만들게 추가했음 - 남영우
         try {
@@ -99,7 +97,7 @@ public class FormParser {
             DiskFileItemFactory diskFactory = new DiskFileItemFactory();
             // 2. 팩토리 제한사항 설정
             diskFactory.setSizeThreshold(10 * 1024 * 1024);
-            diskFactory.setRepository(new File(this.uploadTargetDir));
+            diskFactory.setRepository(new File(UPLOAD_TARGET_DIR));
             // 3. 파일 업로드 핸들러 생성
             ServletFileUpload upload = new ServletFileUpload(diskFactory);
 
@@ -125,7 +123,7 @@ public class FormParser {
                         logger.info("ATTACHED FILE : {} = {}", fieldName, fi.getName());
 
                         // 절대 경로 저장
-                        setFileName(uploadTargetDir + "/" + fi.getName());
+                        setFileName(UPLOAD_TARGET_DIR + File.separator + fi.getName());
                         File fn = new File(fileName);
                         // upload 완료. 추후 메일 전송후 해당 파일을 삭제하도록 해야 함.
                         if (fileName != null) {

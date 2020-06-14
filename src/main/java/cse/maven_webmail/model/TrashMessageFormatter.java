@@ -1,38 +1,47 @@
 package cse.maven_webmail.model;
 
-import org.apache.james.mime4j.dom.Header;
-import org.apache.james.mime4j.message.SimpleContentHandler;
-import org.apache.james.mime4j.stream.BodyDescriptor;
-import org.apache.james.mime4j.stream.Field;
+import org.apache.james.mime4j.MimeException;
+import org.apache.james.mime4j.codec.DecodeMonitor;
+import org.apache.james.mime4j.message.DefaultBodyDescriptorBuilder;
+import org.apache.james.mime4j.parser.MimeStreamParser;
+import org.apache.james.mime4j.stream.BodyDescriptorBuilder;
+import org.apache.james.mime4j.stream.MimeConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tech.blueglacier.email.Attachment;
+import tech.blueglacier.email.Email;
+import tech.blueglacier.parser.CustomContentHandler;
 
-import javax.mail.internet.MimeUtility;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-public class TrashMessageFormatter extends SimpleContentHandler {
+/**
+ * 휴지통 파일을 포매팅하는 클래스입니다.
+ */
+public class TrashMessageFormatter {
+    private static final Logger logger = LoggerFactory.getLogger(TrashMessageFormatter.class);
     private String toAddress;
     private String fromAddress;
     private String subject;
     private String date;
     private String cc;
-    private int i = 0;
-    private String bodyString;
-    private static final String ENCODED_PART_REGEX_PATTERN = "=\\?([^?]+)\\?([^?]+)\\?([^?]+)\\?=";
+    private String body;
     private String fileName;
     private InputStream fileStream;
-    private boolean file;
+    private InputStream mailStream;
+
     public String getCc() {
         return cc;
     }
 
     public String getToAddress() {
         return toAddress;
+    }
+
+    public void setMailStream(InputStream mailStream) {
+        this.mailStream = mailStream;
     }
 
     public String getFromAddress() {
@@ -47,8 +56,8 @@ public class TrashMessageFormatter extends SimpleContentHandler {
         return date;
     }
 
-    public String getBodyString() {
-        return bodyString;
+    public String getBody() {
+        return body;
     }
 
     public String getFileName() {
@@ -59,109 +68,36 @@ public class TrashMessageFormatter extends SimpleContentHandler {
         return fileStream;
     }
 
-    @Override
-    public void headers(Header arg0) {
-        List<Field> fields = arg0.getFields();
-        Map<String, String> mapFields =
-                fields.stream().collect(Collectors.toMap(Field::getName,
-                        Field::getBody));
-        mapFields.forEach((k, v) -> System.out.println(k + " " + v));
-        if (i == 0) {
-            toAddress = mapFields.get("To");
-            fromAddress = mapFields.get("From");
-            subject = decode(mapFields.get("Subject"));
-            date = mapFields.get("Date");
-            cc = mapFields.get("Cc");
-            i++;
-        }
-        if (mapFields.get("Content-Disposition") != null) {
-            String contentDisposition = mapFields.get("Content-Disposition");
-            file = true;
-            fileName = decode(contentDisposition.split("=")[1]);
-        }
-    }
+    /**
+     * 파싱하는 함수입니다.
+     */
+    public void parse() {
+        CustomContentHandler contentHandler = new CustomContentHandler();
 
-    @Override
-    public void body(BodyDescriptor bd, InputStream is) {
-        if (!file) {
-            try {
-                String encoded = new String(is.readAllBytes());
-                bodyString = decode(encoded);
-            } catch (IOException e) {
-
-            }
-        } else {
-            fileStream = is;
-            System.out.println(fileStream);
-            file = false;
-        }
-    }
-
-
-
-    public void startMessage() {
-
-    }
-
-
-    public void endMessage() {
-
-    }
-
-
-    public void startBodyPart() {
-
-    }
-
-
-    public void endBodyPart() {
-
-    }
-
-
-    public void preamble(InputStream is) {
-
-    }
-
-
-    public void epilogue(InputStream is) {
-
-    }
-
-
-    public void startMultipart(BodyDescriptor bd) {
-
-    }
-
-
-    public void endMultipart() {
-
-    }
-
-
-    public void raw(InputStream is) {
-
-    }
-
-    private String decode(String s) {
-        Pattern pattern = Pattern.compile(ENCODED_PART_REGEX_PATTERN);
-        Matcher m = pattern.matcher(s);
-        ArrayList<String> encodedParts = new ArrayList<>();
-        while (m.find()) {
-            encodedParts.add(m.group(0));
-
-        }
-        if (encodedParts.size() > 0) {
-            try {
-                for (String encoded : encodedParts) {
-                    s = s.replace(encoded, MimeUtility.decodeText(encoded));
+        MimeConfig mime4jParserConfig = MimeConfig.DEFAULT;
+        BodyDescriptorBuilder bodyDescriptorBuilder = new DefaultBodyDescriptorBuilder();
+        MimeStreamParser mime4jParser = new MimeStreamParser(mime4jParserConfig, DecodeMonitor.SILENT, bodyDescriptorBuilder);
+        mime4jParser.setContentDecoding(true);
+        mime4jParser.setContentHandler(contentHandler);
+        try {
+            mime4jParser.parse(mailStream);
+            Email email = contentHandler.getEmail();
+            toAddress = email.getToEmailHeaderValue();
+            cc = email.getCCEmailHeaderValue();
+            fromAddress = email.getFromEmailHeaderValue();
+            subject = email.getEmailSubject();
+            date = email.getHeader().getField("Date").getBody();
+            Attachment plainTextEmailBody = email.getPlainTextEmailBody();
+            body = new String(plainTextEmailBody.getIs().readAllBytes());
+            List<Attachment> attachments = email.getAttachments();
+            if (attachments.size() != 0) {
+                if (attachments.size() == 1) {
+                    fileName = attachments.get(0).getAttachmentName();
+                    fileStream = attachments.get(0).getIs();
                 }
-                return s;
-
-            } catch (Exception ex) {
-                return s;
             }
-        } else
-            return s;
+        } catch (MimeException | IOException e) {
+            logger.error(new Date() + " : " + e.getMessage());
+        }
     }
 }

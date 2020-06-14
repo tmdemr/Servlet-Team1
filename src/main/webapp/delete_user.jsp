@@ -44,7 +44,7 @@
     <form name="DeleteUser" action="UserAdmin.do?menu=<%=CommandType.DELETE_USER_COMMAND%>"
           method="POST">
         <c:forEach items="${userAdminAgent.userList}" var="item">
-            <input type="checkbox" name="seletedUsers" value="${item}">${item}<br>
+            <input type="checkbox" name="selectedUsers" value="${item}">${item}<br>
         </c:forEach>
 
         <br>

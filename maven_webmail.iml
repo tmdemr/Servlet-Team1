@@ -99,11 +99,11 @@
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-analysis:7.2" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-tree:7.2" level="project" />
     <orderEntry type="library" name="Maven: org.jacoco:org.jacoco.report:0.8.5" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-core:0.8.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-dom:0.8.3" level="project" />
     <orderEntry type="library" name="Maven: tech.blueglacier:email-mime-parser:1.0.5" level="project" />
     <orderEntry type="library" name="Maven: javax.mail:mail:1.4.7" level="project" />
     <orderEntry type="library" name="Maven: net.freeutils:jcharset:2.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-core:0.8.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-dom:0.8.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-storage:0.8.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.james:apache-mime4j-mbox-iterator:0.8.0" level="project" />
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />

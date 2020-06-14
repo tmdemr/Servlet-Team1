@@ -37,6 +37,11 @@ public class SmtpAgent {
     protected String body = null;
     protected String file1 = null;
 
+    /**
+     * 생성자로서 값을 초기화합니다.
+     * @param host 호스트
+     * @param userid id
+     */
     public SmtpAgent(String host, String userid) {
         this.host = host;
         this.userid = userid;
@@ -102,6 +107,11 @@ public class SmtpAgent {
     // LJM 100418 -  현재 로그인한 사용자의 이메일 주소를 반영하도록 수정되어야 함. - test only
     // LJM 100419 - 일반 웹 서버와의 SMTP 동작시 setFrom() 함수 사용 필요함.
     //              없을 경우 메일 전송이 송신주소가 없어서 걸러짐.
+
+    /**
+     * 메시지를 보냅니다.
+     * @return 메시지 보내기 성공 여부
+     */
     public boolean sendMessage() {
         boolean status = false;
 
@@ -118,44 +128,30 @@ public class SmtpAgent {
         try {
             SMTPMessage msg = new SMTPMessage(session);
 
-            // msg.setFrom(new InternetAddress(this.userid + "@" + this.host));
             msg.setFrom(new InternetAddress(this.userid));  // 200102 LJM - 테스트 목적으로 수정
-            //msg.setFrom(new InternetAddress("jongmin@deu.ac.kr"));
 
 
-            // setRecipient() can be called repeatedly if ';' or ',' exists
             if (this.to.indexOf(';') != -1) {
-                this.to = this.to.replaceAll(";", ",");
+                this.to = this.to.replace(";", ",");
             }
             msg.setRecipients(Message.RecipientType.TO, this.to);  // 200102 LJM - 수정
-//            msg.setRecipients(Message.RecipientType.TO, new String("지니<genie@localhost>"));
 
-//            if (!getCc().equals("")) {
-//                msg.setRecipients(Message.RecipientType.CC, this.cc);
-//            }
 
             if (this.cc.length() > 1) {
                 if (this.cc.indexOf(';') != -1) {
-                    this.cc = this.cc.replaceAll(";", ",");
+                    this.cc = this.cc.replace(";", ",");
                 }
                 msg.setRecipients(Message.RecipientType.CC, this.cc);
             }
 
-            //msg.setSubject(s);
-//            msg.setSubject(MimeUtility.encodeText(this.subj, "euc-kr", "B"));
             msg.setSubject(this.subj);
 
-            //msg.setHeader("Content-Type", "text/plain; charset=utf-8");
             msg.setHeader("User-Agent", "LJM-WM/0.1");
-            //msg.setHeader("Content-Transfer-Encoding", "8bit");
-            //msg.setAllow8bitMIME(true);
 
             // body
             MimeBodyPart mbp = new MimeBodyPart();
             // Content-Type, Content-Transfer-Encoding 설정 의미 없음.
             // 자동으로 설정되는 것 같음. - LJM 041202
-            //mbp.setHeader("Content-Type", "text/plain; charset=euc-kr");
-            //mbp.setHeader("Content-Transfer-Encoding", "8bit");
             mbp.setText(this.body);
 
             Multipart mp = new MimeMultipart();
@@ -166,9 +162,10 @@ public class SmtpAgent {
                 MimeBodyPart a1 = new MimeBodyPart();
                 DataSource src = new FileDataSource(this.file1);
                 a1.setDataHandler(new DataHandler(src));
-                int index = this.file1.lastIndexOf('/');
+                int index = this.file1.lastIndexOf(File.separator);
                 String fileName = this.file1.substring(index + 1);
                 fileName = fileName.replace("\\", "/");
+                logger.info("fileNAme : {}", fileName);
                 // "B": base64, "Q": quoted-printable
                 a1.setFileName(MimeUtility.encodeText(fileName, StandardCharsets.UTF_8.name(), "B"));
                 mp.addBodyPart(a1);
@@ -187,12 +184,11 @@ public class SmtpAgent {
                 }
             }
             status = true;
-        }catch (NamingException e){
-            logger.error("namingException : "+e.getMessage());
-        }
-        catch (Exception ex) {
+        } catch (NamingException e) {
+            logger.error("namingException : " + e.getMessage());
+        } catch (Exception ex) {
             logger.error("sendMessage() error : {}", ex.getMessage());
         }
         return status;
-    }  // sendMessage()
+    }
 }

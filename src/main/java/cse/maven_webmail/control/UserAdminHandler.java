@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package cse.maven_webmail.control;
 
 import java.io.BufferedInputStream;
@@ -57,15 +53,10 @@ public class UserAdminHandler extends HttpServlet {
      *
      * @param request  servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-//        RequestDispatcher view = request.getRequestDispatcher("main_menu.jsp");
-            // Validate if userid == "admin"
             HttpSession session = request.getSession();
             String userid = (String) session.getAttribute("userid");
             if (userid == null || !userid.equals("admin")) {
@@ -78,7 +69,7 @@ public class UserAdminHandler extends HttpServlet {
 
                 switch (select) {
                     case CommandType.ADD_USER_COMMAND:
-                        addUser(request, response, out);
+                        addUser(request, out);
                         break;
 
                     case CommandType.DELETE_USER_COMMAND:
@@ -95,7 +86,12 @@ public class UserAdminHandler extends HttpServlet {
         }
     }
 
-    private void addUser(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
+    /**
+     * 사용자를 추가합니다.
+     * @param request 요청
+     * @param out PrintWriter
+     */
+    private void addUser(HttpServletRequest request, PrintWriter out) {
         try {
             UserAdminAgent agent = new UserAdminAgent();
             agent.setServer(host);
@@ -106,7 +102,6 @@ public class UserAdminHandler extends HttpServlet {
             out.println("userid = " + userid + "<br>");
             out.println("password = " + password + "<br>");
             out.flush();
-            // if (addUser successful)  사용자 등록 성공 팝업창
             // else 사용자 등록 실패 팝업창
             if (agent.addUser(userid, password)) {
                 out.println(getUserRegistrationSuccessPopUp());
@@ -119,6 +114,10 @@ public class UserAdminHandler extends HttpServlet {
         }
     }
 
+    /**
+     * 사용자 추가 성공 알람입니다.
+     * @return 사용자 추가 성공 javascript 문자열
+     */
     private String getUserRegistrationSuccessPopUp() {
         String alertMessage = "사용자 등록이 성공했습니다.";
         StringBuilder successPopUp = new StringBuilder();
@@ -139,7 +138,10 @@ public class UserAdminHandler extends HttpServlet {
         successPopUp.append("</body></html>");
         return successPopUp.toString();
     }
-
+    /**
+     * 사용자 추가 실패 알람입니다.
+     * @return 사용자 추가 실패 javascript 문자열
+     */
     private String getUserRegistrationFailurePopUp() {
         String alertMessage = "사용자 등록이 실패했습니다.";
         StringBuilder successPopUp = new StringBuilder();
@@ -161,13 +163,18 @@ public class UserAdminHandler extends HttpServlet {
         return successPopUp.toString();
     }
 
+    /**
+     * 회원을 삭제하는 함수입니다.
+     * @param request 요청
+     * @param response 응답
+     */
     private void deleteUser(HttpServletRequest request, HttpServletResponse response) {
 
         try {
             UserAdminAgent agent = new UserAdminAgent();
-            agent.setServer(host);
             agent.setCwd(path);
             agent.setPort(port);
+            agent.setServer(host);
             String[] deleteUserList = request.getParameterValues("selectedUsers");
             agent.deleteUsers(deleteUserList);
             response.sendRedirect("admin_menu.jsp");

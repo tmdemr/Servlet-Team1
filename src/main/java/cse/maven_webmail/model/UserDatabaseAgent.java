@@ -9,6 +9,9 @@ import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * 유저의 개인 정보 데이터베이스를 관리하는 객체입니다.
+ */
 public class UserDatabaseAgent {
     private String userId;
     private String name;
@@ -17,7 +20,7 @@ public class UserDatabaseAgent {
     private static Logger logger = LoggerFactory.getLogger(UserDatabaseAgent.class);
 
     public UserDatabaseAgent() {
-
+        //빈 생성자
     }
 
     public void setUserId(String userId) {
@@ -37,6 +40,10 @@ public class UserDatabaseAgent {
         this.phoneNumber = phoneNumber;
     }
 
+    /**
+     * 개인정보를 삽입합니다.
+     * @return 성공 여부
+     */
     public boolean insert() {
         boolean status;
         String query = "INSERT INTO USERINFO(USERNAME, NAME, PHONE, BIRTHDAY) VALUES(?, ?, ?, ?)";
@@ -62,6 +69,12 @@ public class UserDatabaseAgent {
         return status;
     }
 
+    /**
+     * 디비 연결을 반환합니다.
+     * @return 디비 연결
+     * @throws NamingException JDBC 찾기 실패했을 때
+     * @throws SQLException SQL 오류
+     */
     private Connection getConnection() throws NamingException, SQLException {
         String name = "java:/comp/env/jdbc/JamesWebmail";
         javax.naming.Context context = new javax.naming.InitialContext();
@@ -69,6 +82,10 @@ public class UserDatabaseAgent {
         return dataSource.getConnection();
     }
 
+    /**
+     * 정보를 바탕으로 아이디를 찾습니다.
+     * @return 찾은 아이디
+     */
     public String findId() {
         String result;
         String query = "SELECT USERNAME FROM USERINFO WHERE NAME = ? AND PHONE = ? AND BIRTHDAY = ?";
@@ -97,6 +114,10 @@ public class UserDatabaseAgent {
         return result;
     }
 
+    /**
+     * 정보를 바탕으로 일치하는 회원이 있는지 찾습니다.
+     * @return 찾았을 경우
+     */
     public boolean findPassword() {
         boolean success = false;
         String query = "SELECT 1 FROM USERINFO WHERE NAME = ? AND PHONE = ? AND BIRTHDAY = ? AND USERNAME = ?";
@@ -121,6 +142,10 @@ public class UserDatabaseAgent {
         return success;
     }
 
+    /**
+     * 정보를 바탕으로 개인정보를 변경합니다.
+     * @return 개인정보 변경 성공 여부
+     */
     public boolean changeMyInfo() {
         boolean success;
         String sql = "UPDATE userinfo SET NAME = ?, PHONE = ?, BIRTHDAY = ? WHERE USERNAME = ?";
@@ -140,6 +165,10 @@ public class UserDatabaseAgent {
         return success;
     }
 
+    /**
+     * 개인정보를 조회할 때 개인정보를 반환합니다.
+     * @return 개인정보 테이블
+     */
     public String getUserData() {
         StringBuilder stringBuilder = new StringBuilder();
         String sql = "SELECT NAME, PHONE, BIRTHDAY FROM userinfo where username = ?";
@@ -201,6 +230,10 @@ public class UserDatabaseAgent {
         return stringBuilder.toString();
     }
 
+    /**
+     * 회원을 삭제합니다.
+     * @return 회원삭제 성공여부
+     */
     public boolean deleteUser() {
         boolean status = false;
         String sql = "DELETE FROM userinfo WHERE USERNAME = ?";
@@ -217,18 +250,17 @@ public class UserDatabaseAgent {
             userInfoDeleteStatement.setString(1, userId);
             inboxDeleteStatement.setString(1, userId);
             trashDeleteStatement.setString(1, userId);
-
             int rows = userInfoDeleteStatement.executeUpdate();
-            status = rows == 1;
-
+            logger.info("{}가 탈퇴해서 userinfo에서 삭제됨", userId);
             int inboxDeleted = inboxDeleteStatement.executeUpdate();
             logger.info("{}가 탈퇴해서 inbox에서 {}개의 메일이 삭제됨", userId, inboxDeleted);
             int trashDeleted = trashDeleteStatement.executeUpdate();
             logger.info("{}가 탈퇴해서 휴지통에서 {}개의 메일이 삭제됨", userId, trashDeleted);
+            status = true;
         } catch (SQLException | NamingException throwables) {
-            status = false;
             logger.error(throwables.getMessage());
         }
+        logger.info("{}가 탈퇴 : {}", userId, status);
         return status;
     }
 }

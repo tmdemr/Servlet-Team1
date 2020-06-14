@@ -47,9 +47,17 @@
 <div id="main">
     <%= pop3.getMessageList() %>
     <form action="main_menu.jsp" method="POST">
+        <input type="hidden" name="pageNo" value="1"/>
         <select name="searchType">
-            <option value="subject">제목</option>
-            <option value="from">보낸 사람</option>
+            <option value="subject" <c:if test="${param.searchType.equals('subject')}">
+                <c:out value="selected=\"selected\""/>
+            </c:if>
+            >제목
+            </option>
+            <option value="from" <c:if test="${param.searchType.equals('from')}">
+                <c:out value="selected=\"selected\""/>
+            </c:if>>보낸 사람
+            </option>
         </select>
         <input type="text" name="keyword" value="${param.keyword}">
         <input type="submit" value="검색">

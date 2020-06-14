@@ -49,7 +49,6 @@ public class LoginHandler extends HttpServlet {
                 // Check the login information is valid using <<model>>Pop3Agent.
                 Pop3Agent pop3Agent = new Pop3Agent(host, userid, password);
                 boolean isLoginSuccess = pop3Agent.validate();
-//                    boolean isLoginSuccess = false;
 
                 // Now call the correct page according to its validation result.
                 if (isLoginSuccess) {
@@ -65,12 +64,10 @@ public class LoginHandler extends HttpServlet {
                 } else {
                     RequestDispatcher view = request.getRequestDispatcher("login_fail.jsp");
                     view.forward(request, response);
-//                        response.sendRedirect("login_fail.jsp");
                 }
                 break;
             case CommandType.LOGOUT:
                 session.invalidate();
-//                    response.sendRedirect(homeDirectory);
                 response.sendRedirect(getServletContext().getInitParameter("HomeDirectory"));
                 break;
             default:
@@ -80,10 +77,15 @@ public class LoginHandler extends HttpServlet {
 
     }
 
+    /**
+     * 사용자 아이디가 운영자 계정인지 반환합니다.
+     * @param userid 사용자 아이디
+     * @return 운영자 여부
+     */
     protected boolean isAdmin(String userid) {
         boolean status = false;
 
-        if (userid.equals(this.ADMINISTRATOR)) {
+        if (userid.equals(ADMINISTRATOR)) {
             status = true;
         }
 

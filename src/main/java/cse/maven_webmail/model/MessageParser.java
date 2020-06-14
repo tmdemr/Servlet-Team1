@@ -1,7 +1,3 @@
-/*
- * File: MessageParser.java
- * Goal: 메일 메시지의 정보 추출(To, Cc, From, Subject, Body, Attached File)
- */
 package cse.maven_webmail.model;
 
 import org.slf4j.Logger;
@@ -11,10 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 import javax.activation.DataHandler;
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Multipart;
-import javax.mail.Part;
+import javax.mail.*;
 import javax.mail.internet.MimeUtility;
 
 /**
@@ -30,19 +23,29 @@ public class MessageParser {
     private String subject;
     private String body;
     private String fileName;
-    private final String downloadTempDir = "C:/temp/download/";
+    private static final String DOWNLOAD_TEMP_DIR = "C:/temp/download/";
     private String userid;
 
+    /**
+     * 메세지를 파싱하는 클래스의 생성자입니다.
+     * @param message 메세지
+     * @param userid 사용자 아이디
+     */
     public MessageParser(Message message, String userid) {
         this.message = message;
         this.userid = userid;
     }
 
+    /**
+     * 파싱을 하는 메소드입니다.
+     * @param parseBody body를 파싱할 지 여부입니다. 목록화인지 메일 보기인지...
+     * @return 파싱 성공 여부입니다.
+     */
     public boolean parse(boolean parseBody) {
         boolean status = false;
 
         try {
-            getEnvelope(message);
+            getEnvelope();
             if (parseBody) {
                 getPart(message);
             }
@@ -56,7 +59,11 @@ public class MessageParser {
 
     }
 
-    private void getEnvelope(Message m) throws Exception {
+    /**
+     * 메세지에서 각각 요소를 뽑아내는 메소드입니다.
+     * @throws MessagingException
+     */
+    private void getEnvelope() throws MessagingException {
         fromAddress = message.getFrom()[0].toString();  // 101122 LJM : replaces getMyFrom2()
         toAddress = getAddresses(message.getRecipients(Message.RecipientType.TO));
         Address[] addr = message.getRecipients(Message.RecipientType.CC);
@@ -71,18 +78,22 @@ public class MessageParser {
     }
 
     // ref: http://www.oracle.com/technetwork/java/faq-135477.html#readattach
+
+    /**
+     * 메세지에서 파트를 처리하는 메소드입니다.
+     * @param p 파트
+     * @throws Exception
+     */
     private void getPart(Part p) throws Exception {
         String disp = p.getDisposition();
 
         if (disp != null && (disp.equalsIgnoreCase(Part.ATTACHMENT)
                 || disp.equalsIgnoreCase(Part.INLINE))) {  // 첨부 파일
-//            fileName = p.getFileName();
             fileName = MimeUtility.decodeText(p.getFileName());
-//            fileName = fileName.replaceAll(" ", "%20");
             if (fileName != null) {
                 logger.trace("MessageParser.getPart() : file = {}", fileName);
                 // 첨부 파일을 서버의 내려받기 임시 저장소에 저장
-                String tempUserDir = this.downloadTempDir + this.userid;
+                String tempUserDir = DOWNLOAD_TEMP_DIR + this.userid;
                 File dir = new File(tempUserDir);
                 if (!dir.exists()) {  // tempUserDir 생성
                     dir.mkdirs();
@@ -91,7 +102,6 @@ public class MessageParser {
                 String filename = MimeUtility.decodeText(p.getFileName());
                 // 파일명에 " "가 있을 경우 서블릿에 파라미터로 전달시 문제 발생함.
                 // " "를 모두 "_"로 대체함.
-//                filename = filename.replaceAll("%20", " ");
                 DataHandler dh = p.getDataHandler();
                 FileOutputStream fos = new FileOutputStream(tempUserDir + "/" + filename);
                 dh.writeTo(fos);
@@ -122,6 +132,10 @@ public class MessageParser {
         }
     }
 
+    /**
+     * 출력해보는 메소드입니다.
+     * @param printBody 출력할지 여부입니다.
+     */
     private void printMessage(boolean printBody) {
         logger.trace("From: {}", fromAddress);
         logger.trace("To: {}", toAddress);
@@ -138,18 +152,12 @@ public class MessageParser {
         }
     }
 
+    /**
+     * 주소들을 String으로 바꿔주는 메소드입니다.
+     * @param addresses 주소들
+     * @return ", "로 연결된 주소
+     */
     private String getAddresses(Address[] addresses) {
-        /*
-        StringBuilder buffer = new StringBuilder();
-
-        for (Address address : addresses) {
-            buffer.append(address.toString());
-            buffer.append(", ");
-        } // 마지막에 있는 ", " 삭제
-        int start = buffer.length() - 2;
-        int end = buffer.length() - 1;
-        buffer.delete(start, end);
-        */
         String[] addressStrings = Arrays.stream(addresses).map(Address::toString).distinct().toArray(String[]::new); // java 8
         return String.join(", ", addressStrings); // java 9
     }

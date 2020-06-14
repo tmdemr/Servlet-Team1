@@ -4,19 +4,18 @@
  */
 package cse.maven_webmail.control;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import cse.maven_webmail.model.FormParser;
 import cse.maven_webmail.model.SmtpAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author jongmin
@@ -29,11 +28,10 @@ public class WriteMailHandler extends HttpServlet {
      *
      * @param request  servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
      * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         response.setContentType("text/html;charset=UTF-8");
 
 
@@ -41,26 +39,20 @@ public class WriteMailHandler extends HttpServlet {
             request.setCharacterEncoding(StandardCharsets.UTF_8.name());
             int select = Integer.parseInt(request.getParameter("menu"));
 
-            switch (select) {
-//                case CommandType.WRITE_MENU:  // 메일 쓰기 화면
-//                    out = response.getWriter();
-//                    response.sendRedirect(homeDirectory + "write_mail.jsp");
-//                    break;
-
-
-                case CommandType.SEND_MAIL_COMMAND: // 실제 메일 전송하기
-                    boolean status = sendMessage(request);
-                    out.print(getMailTransportPopUp(status));
-//                    out.flush();
-                    break;
-
-                default:
-                    out.println("없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?");
-                    break;
+            if (select == CommandType.SEND_MAIL_COMMAND) { // 실제 메일 전송하기
+                boolean status = sendMessage(request);
+                out.print(getMailTransportPopUp(status));
+            } else {
+                out.println("없는 메뉴를 선택하셨습니다. 어떻게 이 곳에 들어오셨나요?");
             }
         }
     }
 
+    /**
+     * 메일을 보냅니다.
+     * @param request 요청
+     * @return 메일 보내기 성공여부
+     */
     private boolean sendMessage(HttpServletRequest request) {
         boolean status = false;
 
@@ -94,6 +86,11 @@ public class WriteMailHandler extends HttpServlet {
         return status;
     }  // sendMessage()
 
+    /**
+     * 메일
+     * @param success 성공여부
+     * @return 자바스크립트 문자열
+     */
     private String getMailTransportPopUp(boolean success) {
         String alertMessage;
         if (success) {
@@ -127,12 +124,11 @@ public class WriteMailHandler extends HttpServlet {
      *
      * @param request  servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
      * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         processRequest(request, response);
 
 
@@ -143,12 +139,11 @@ public class WriteMailHandler extends HttpServlet {
      *
      * @param request  servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
      * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         processRequest(request, response);
 
 

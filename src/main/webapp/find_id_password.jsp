@@ -163,10 +163,10 @@
     }
 </script>
 <body>
-<h1>아이디/비밀번호 찾기!</h1>
 <table id="formTable" border="1">
+    <caption>아이디/비밀번호 찾기!</caption>
     <tr>
-        <th colspan="2">
+        <th colspan="2" id="column">
             <a onclick="change(true)">아이디 찾기</a>
             <a onclick="change(false)">비밀번호 찾기</a>
         </th>

@@ -13,7 +13,7 @@ import javax.mail.Message;
  */
 public class MessageFormatter {
 
-    private String userid;  // 파일 임시 저장 디렉토리 생성에 필요
+    private final String userid;  // 파일 임시 저장 디렉토리 생성에 필요
 
 
 
@@ -21,9 +21,13 @@ public class MessageFormatter {
         this.userid = userid;
     }
 
+    /**
+     * 메세지를 보여주는 테이블을 생성합니다.
+     * @param messages 메세지객체들
+     * @return 테이블화 된 String
+     */
     public String getMessageTable(Message[] messages) {
         StringBuilder buffer = new StringBuilder();
-
         // 메시지 제목 보여주기
         buffer.append("<table>");  // table start
         buffer.append("<tr> "
@@ -33,7 +37,6 @@ public class MessageFormatter {
                 + " <th> 보낸 날짜 </th>   "
                 + " <th> 삭제 </th>   "
                 + " </tr>");
-
         for (int i = messages.length-1; i > -1; i--) {
             MessageParser parser = new MessageParser(messages[i], userid);
             parser.parse(false);  // envelope 정보만 필요
@@ -50,10 +53,14 @@ public class MessageFormatter {
                     .append("> 삭제 </a>").append("</td>").append(" </tr>");
         }
         buffer.append("</table>");
-
         return buffer.toString();
     }
 
+    /**
+     * 메세지 객체로부터 메세지를 사용자가 보기 좋게 보여주는 메소드입니다.
+     * @param message 사용자에게 보여줄 메세지
+     * @return 보기 좋게 다듬어진 메세지
+     */
     public String getMessage(Message message) {
         StringBuilder buffer = new StringBuilder();
         MessageParser parser = new MessageParser(message, userid);
@@ -67,7 +74,7 @@ public class MessageFormatter {
         String attachedFile = parser.getFileName();
         if (attachedFile != null) {
             buffer.append("<br> <hr> 첨부파일: <a href=ReadMail.do?menu=" + CommandType.DOWNLOAD_COMMAND + "&userid=")
-                    .append(this.userid).append("&filename=").append(attachedFile.replaceAll(" ", "%20"))
+                    .append(this.userid).append("&filename=").append(attachedFile.replace(" ", "%20"))
                     .append(" target=_top> ").append(attachedFile).append("</a> <br>");
         }
         buffer.append("<form action=\"write_mail.jsp\" method=\"POST\">   "

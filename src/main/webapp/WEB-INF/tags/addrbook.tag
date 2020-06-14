@@ -7,7 +7,7 @@
 <%@attribute required="true" name="addressChangeMenu" type="java.lang.Integer" %>
 <%@attribute name="deleteAllAddressMenu" required="true" type="java.lang.Integer" %>
 <sql:query var="rs" dataSource="jdbc/JamesWebmail">
-    SELECT userid, nickname, email, phoneNumber FROM ADDRESSBOOK
+    SELECT userid, nickname, email, phoneNumber FROM ADDRESSBOOK WHERE userid = '${userName}'
 </sql:query>
 
 <table border="1">
@@ -18,6 +18,7 @@
             <th>전화번호</th>
             <th>수정</th>
             <th>삭제</th>
+            <th>메일보내기</th>
         </tr>
     </thread>
     <tbody>
@@ -44,7 +45,14 @@
                 <input type="submit" value="삭제하기"/>
             </form>
         </td>
+        <td>
+            <form action="write_mail.jsp" method="POST">
+                <input type="hidden" name="fromAddress" value="${row.email}">
+                <input type="submit" value="메일 보내기">
+            </form>
+        </td>
         </tr>
+
 
     </c:forEach>
     </tbody>

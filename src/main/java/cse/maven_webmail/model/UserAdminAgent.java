@@ -21,35 +21,48 @@ public class UserAdminAgent {
     private InputStream is;
     private OutputStream os;
     private boolean isConnected = false;
-    private String ROOT_ID;  //  = "root";
-    private String ROOT_PASSWORD;  // = "root";
-    private String ADMIN_ID; //  = "admin";
+    private String rootId;  //  = "root";
+    private String rootPassword;  // = "root";
+    private String adminId; //  = "admin";
     private static final String EOL = "\r\n";
     private String cwd;
     private String server;
     private int port;
-    private int pageNo;
-
-    public void setPageNo(int pageNo) {
-        this.pageNo = pageNo;
-    }
 
     public UserAdminAgent() {
+        // 빈 생성자
     }
 
+    /**
+     * path를 설정합니다.
+     * @param cwd
+     */
     public void setCwd(String cwd) {
         this.cwd = cwd;
     }
 
+    /**
+     * 서버를 설정하고 연결합니다.
+     * @param server 서버
+     * @throws Exception
+     */
     public void setServer(String server) throws Exception {
         this.server = server;
         initialize();
     }
 
+    /**
+     * 포트를 설정합니다.
+     * @param port 포트
+     */
     public void setPort(int port) {
         this.port = port;
     }
 
+    /**
+     * 프로퍼티를 열어서 설정 값들을 가져오고, 연결합니다.
+     * @throws Exception
+     */
     public void initialize() throws Exception {
         Properties props = new Properties();
         String propertyFile = this.cwd + "/WEB-INF/classes/config/system.properties";
@@ -59,10 +72,10 @@ public class UserAdminAgent {
                      new BufferedInputStream(
                              new FileInputStream(propertyFile))) {
             props.load(bis);
-            ROOT_ID = props.getProperty("root_id");
-            ROOT_PASSWORD = props.getProperty("root_password");
-            ADMIN_ID = props.getProperty("admin_id");
-            logger.info("ROOT_ID = {}\nROOT_PASS = {}\n", ROOT_ID, ROOT_PASSWORD);
+            rootId = props.getProperty("root_id");
+            rootPassword = props.getProperty("root_password");
+            adminId = props.getProperty("admin_id");
+            logger.info("ROOT_ID = {}\nROOT_PASS = {}\n", rootId, rootPassword);
         } catch (IOException ioe) {
             logger.error("UserAdminAgent: 초기화 실패 - {}", ioe.getMessage());
         }
@@ -73,9 +86,12 @@ public class UserAdminAgent {
         isConnected = connect();
     }
 
-    // return value:
-    //   - true: addUser operation successful
-    //   - false: addUser operation failed
+    /**
+     * 사용자를 추가합니다.
+     * @param userId 아이디
+     * @param password 비밀번호
+     * @return 사용자 추가 성공여부
+     */
     public boolean addUser(String userId, String password) {
         boolean status = false;
         logger.info("addUser() called");
@@ -97,7 +113,13 @@ public class UserAdminAgent {
         }
         return status; // 상태 반환
     }  // addUser()
-    public boolean deleteUser(String userId){
+
+    /**
+     * 단일 사용자 제거를 합니다.
+     * @param userId 사용자아이디
+     * @return 사용자 제거 성공여부
+     */
+    public boolean deleteUser(String userId) {
         boolean status = false;
         String command = "deluser " + userId + EOL;
         if (!isConnected) {
@@ -114,6 +136,11 @@ public class UserAdminAgent {
         }
         return status; // 상태 반환
     }
+
+    /**
+     * 사용자 리스트를 반환합니다.
+     * @return 사용자 리스트
+     */
     public List<String> getUserList() {
         List<String> userList = new LinkedList<>();
         if (!isConnected) {
@@ -133,6 +160,11 @@ public class UserAdminAgent {
 
     }  // getUserList()
 
+    /**
+     * 사용자 리스트를 파싱합니다.
+     * @param message 받은 모든 결과
+     * @return 파싱된 리스트
+     */
     private List<String> parseUserList(String message) {
         // 1: 줄 단위로 나누기
         String[] lines = message.split(EOL);
@@ -143,7 +175,7 @@ public class UserAdminAgent {
         String[] accountLines = new String[numberOfUsers];
         System.arraycopy(lines, 1, accountLines, 0, numberOfUsers);
         return Arrays.stream(accountLines).map(line -> { // java 8의 스트림으로 변경해보았음.
-            if (line.split(" ")[1].equals(ADMIN_ID))
+            if (line.split(" ")[1].equals(adminId))
                 return null;
             else
                 return line.split(" ")[1];
@@ -165,16 +197,26 @@ public class UserAdminAgent {
         //return userList;
     } // parseUserList()
 
+    /**
+     * 사용자 여럿을 제거합니다.
+     * @param userList 선택된 사용자들
+     * @return 제거 성공 여부
+     */
     public boolean deleteUsers(String[] userList) {
         byte[] messageBuffer = new byte[1024];
         String command;
         String recvMessage;
         boolean status = false;
+        UserDatabaseAgent userDatabaseAgent = new UserDatabaseAgent();
+        logger.info("deleteUsers Connected... : {}",isConnected);
         if (!isConnected) {
             return false;
         }
+        logger.info("selected users : {}",String.join(", ", userList));
         try {
             for (String userId : userList) {
+                userDatabaseAgent.setUserId(userId);
+                userDatabaseAgent.deleteUser();
                 // 1: "deluser" 명령 송신
                 command = "deluser " + userId + EOL;
                 os.write(command.getBytes());
@@ -182,8 +224,8 @@ public class UserAdminAgent {
 
                 // 2: 응답 메시지 수신
                 java.util.Arrays.fill(messageBuffer, (byte) 0);
-                is.read(messageBuffer);
-
+                int bytes = is.read(messageBuffer);
+                logger.trace("deluser : {}byte", bytes);
                 // 3: 응답 메시지 분석
                 recvMessage = new String(messageBuffer);
                 logger.trace(recvMessage);
@@ -199,6 +241,11 @@ public class UserAdminAgent {
 
     }
 
+    /**
+     * 사용자가 존재하는지 검사합니다.
+     * @param userid 검사할 아이디
+     * @return 사용자 존재 여부
+     */
     public boolean verify(String userid) {
         boolean status = false;
         try {
@@ -216,35 +263,41 @@ public class UserAdminAgent {
 
     }
 
+    /**
+     * 원격 관리 도구에 접속하는 메소드입니다.
+     * @return 연결 성공 여부
+     * @throws Exception socket이라서
+     */
     private boolean connect() throws Exception {
         byte[] messageBuffer = new byte[1024];
         boolean returnVal;
+        int bytes;
         String sendMessage;
         logger.info("UserAdminAgent.connect() called...");
-
-
         // root 인증: id, passwd - default: root
         // 1: Login Id message 수신
-        is.read(messageBuffer);
+        bytes = is.read(messageBuffer);
+        logger.info("connect : {}bytes",bytes);
         String recvMessage = new String(messageBuffer);
         logger.trace(recvMessage);
         // 2: rootId 송신
-        sendMessage = ROOT_ID + EOL;
+        sendMessage = rootId + EOL;
         os.write(sendMessage.getBytes());
 
         // 3: Password message 수신
         java.util.Arrays.fill(messageBuffer, (byte) 0);
-        is.read(messageBuffer);
+        bytes = is.read(messageBuffer);
+        logger.info("connect : {}bytes",bytes);
         recvMessage = new String(messageBuffer);
         logger.trace(recvMessage);
         // 4: rootPassword 송신
-        sendMessage = ROOT_PASSWORD + EOL;
+        sendMessage = rootPassword + EOL;
         os.write(sendMessage.getBytes());
 
         // 5: welcome message 수신
         java.util.Arrays.fill(messageBuffer, (byte) 0);
-        // if (is.available() > 0) {
-        is.read(messageBuffer);
+        bytes = is.read(messageBuffer);
+        logger.info("connect : {}bytes",bytes);
         recvMessage = new String(messageBuffer);
         logger.trace(recvMessage);
         returnVal = recvMessage.contains("Welcome");
@@ -252,6 +305,10 @@ public class UserAdminAgent {
         return returnVal;
     }  // connect()
 
+    /**
+     * 원격 제어 도구를 종료하는 메소드입니다.
+     * @return 종료 성공 여부
+     */
     public boolean quit() {
         byte[] messageBuffer = new byte[1024];
         boolean status = false;
@@ -262,7 +319,6 @@ public class UserAdminAgent {
             os.write(quitCommand.getBytes());
             // 2: quit 명령에 대한 응답 수신
             java.util.Arrays.fill(messageBuffer, (byte) 0);
-            //if (is.available() > 0) {
             int bytes = is.read(messageBuffer);
             logger.info("나가기는 {}바이트", bytes);
             // 3: 메시지 분석
@@ -277,6 +333,13 @@ public class UserAdminAgent {
 
     }
 
+    /**
+     * 명령을 보낼 때 사용하는 메소드입니다. 사용자 리스트의 경우 끝이 어딘지 알 수 없고 얼마나 많은
+     * 바이트를 받을지 알 수 없어서 만든 메소드입니다.
+     * @param command 보낼 명령
+     * @return 명령에  대한 결과
+     * @throws IOException 소켓이라...
+     */
     private String sendCommand(String command) throws IOException {
         os.write(command.getBytes());
         String quitCommand = "quit" + EOL;
@@ -290,6 +353,12 @@ public class UserAdminAgent {
         return new String(commandResults);
     }
 
+    /**
+     * 사용자의 비밀번호를 바꾸는 메소드입니다.
+     * @param userId 바꿀 사용자 아이디
+     * @param newPassword 새로운 비밀번호
+     * @return 비밀번호 변경 성공 여부
+     */
     public boolean setPassword(String userId, String newPassword) {
         boolean status = false;
         try {

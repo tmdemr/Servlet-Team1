@@ -15,7 +15,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="maven_webmail" options="-endorseddirs C:\Users\Java\Documents\GitHub\Servlet-Team1\target/endorsed" />
+      <module name="maven_webmail" options="-endorseddirs C:\Users\Java\Documents\CollisionDefence\Servlet-Team1\target/endorsed" />
     </option>
   </component>
 </project>
